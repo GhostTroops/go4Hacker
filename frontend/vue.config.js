@@ -1,6 +1,6 @@
 const path = require('path')
 const webpack = require('webpack')
-const { GitRevisionPlugin } = require('git-revision-webpack-plugin')
+const GitRevisionPlugin = require('git-revision-webpack-plugin')
 const GitRevision = new GitRevisionPlugin()
 const buildDate = JSON.stringify(new Date().toLocaleString())
 const createThemeColorReplacerPlugin = require('./config/plugin.config')
@@ -42,8 +42,8 @@ const vueConfig = {
   configureWebpack: {
     // webpack plugins
     plugins: [
-      // Ignore all locale files of moment.js,fix: https://webpack.js.org/plugins/ignore-plugin/
-      new webpack.IgnorePlugin({resourceRegExp:/(^\.\/locale$)|(moment$)/}),
+      // Ignore all locale files of moment.js
+      new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
       new webpack.DefinePlugin({
         APP_VERSION: `"${require('./package.json').version}"`,
         GIT_HASH: JSON.stringify(getGitHash()),
@@ -87,15 +87,15 @@ const vueConfig = {
   css: {
     loaderOptions: {
       less: {
-        
-        lessOptions:{modifyVars: {
+        modifyVars: {
           // less vars，customize ant design theme
+
           // 'primary-color': '#F5222D',
           // 'link-color': '#F5222D',
           'border-radius-base': '2px'
         },
         // DO NOT REMOVE THIS LINE
-        javascriptEnabled: true}
+        javascriptEnabled: true
       }
     }
   },

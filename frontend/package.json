@@ -16,6 +16,7 @@
     "ant-design-vue": "^1.6.2",
     "axios": "^0.19.0",
     "bcryptjs": "^2.4.3",
+    "cache-loader": "^4.1.0",
     "core-js": "^3.1.2",
     "enquire.js": "^2.1.6",
     "lodash.clonedeep": "^4.5.0",
