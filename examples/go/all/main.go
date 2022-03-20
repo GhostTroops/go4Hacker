@@ -11,8 +11,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/chennqqi/godnslog/client"
-	"github.com/chennqqi/godnslog/models"
+	"github.com/hktalent/go4Hacker/client"
+	"github.com/hktalent/go4Hacker/models"
 )
 
 func main() {

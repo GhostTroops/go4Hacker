@@ -4,7 +4,7 @@
 
 A dns&amp;http log server for verify SSRF/XXE/RFI/RCE vulnerability 
 
-[English Doc](https://github.com/chennqqi/godnslog) | 中文文档
+[English Doc](https://github.com/hktalent/go4Hacker) | 中文文档
 
 ## 功能特性
 

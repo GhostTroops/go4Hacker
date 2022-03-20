@@ -22,8 +22,8 @@ var doc = `{
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
-            "url": "https://github.com/chennqqi/godnslog/issue",
-            "email": "chennqqi@qq.com"
+            "url": "https://github.com/hktalent/go4Hacker/issue",
+            "email": "51pwn@51pwn.com"
         },
         "license": {
             "name": "Apache 2.0",

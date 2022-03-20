@@ -2,12 +2,12 @@ basePath: /
 definitions:
   server.CR:
     $ref: '#/definitions/models.CR'
-host: www.godnslog.com
+host: www.51pwn.com
 info:
   contact:
-    email: chennqqi@qq.com
+    email: 51pwn@51pwn.com
     name: API Support
-    url: https://github.com/chennqqi/godnslog/issue
+    url: https://github.com/hktalent/go4Hacker/issue
   description: This is godnslog server.
   license:
     name: Apache 2.0

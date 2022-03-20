@@ -1,5 +1,6 @@
 const ThemeColorReplacer = require('webpack-theme-color-replacer')
-const generate = require('@ant-design/colors/lib/generate').default
+// const generate = require('@ant-design/colors/lib/generate').default
+const {generate} = require('@ant-design/colors')
 
 const getAntdSerials = (color) => {
   // 淡化（即less的tint）

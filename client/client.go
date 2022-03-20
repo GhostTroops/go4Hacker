@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chennqqi/godnslog/models"
+	"github.com/hktalent/go4Hacker/models"
 )
 
 type Client struct {

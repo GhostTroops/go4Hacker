@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chennqqi/godnslog/cache"
-	"github.com/chennqqi/godnslog/models"
+	"github.com/hktalent/go4Hacker/cache"
+	"github.com/hktalent/go4Hacker/models"
 	"github.com/miekg/dns"
 	"github.com/sirupsen/logrus"
 )

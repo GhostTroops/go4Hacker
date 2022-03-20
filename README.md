@@ -4,7 +4,7 @@
 
 Automated penetration and auxiliary systems, providing XSS, XXE, DNS log, SSRF, RCE, web netcat and other Servers
 
-English Doc | [中文文档](https://github.com/chennqqi/godnslog/blob/master/README_CN.md)
+English Doc | [中文文档](https://github.com/hktalent/go4Hacker/blob/master/README_CN.md)
 
 ## features
 
@@ -106,3 +106,7 @@ guest/guest123
 - [ ] allow Anonymous user access document page
 - [ ] enable custom rebinding stage two setting
 - [ ] fix login logical problem
+
+## build from
+https://github.com/chennqqi/godnslog
+but the go and node js modules here are updated to the latest

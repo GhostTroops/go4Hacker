@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chennqqi/godnslog/models"
+	"github.com/hktalent/go4Hacker/models"
 
-	"github.com/chennqqi/goutils/ginutils"
 	"github.com/gin-gonic/gin"
+	"github.com/hktalent/goutils/ginutils"
 	"github.com/sirupsen/logrus"
 )
 
