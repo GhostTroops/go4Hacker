@@ -10,7 +10,11 @@ npm-check -u
 npm update --depth 9999 --dev
 npm audit fix --force
 npm cache clear --force
-yarn install;yarn upgrade;yarn build
+
+yarn install
+yarn upgrade
+yarn build
+
 cd ..
 go build
 
