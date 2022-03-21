@@ -4,8 +4,8 @@ module.exports = {
     rules: [
       {
         test: /\.md$/i,
-        use: 'raw-loader',
-      },
-    ],
-  },
-};
+        use: 'raw-loader'
+      }
+    ]
+  }
+}

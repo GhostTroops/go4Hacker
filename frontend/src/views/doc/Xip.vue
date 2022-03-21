@@ -4,14 +4,14 @@
       class="post"
     >
       <mavon-editor
-          defaultOpen="preview"
-          :toolbarsFlag="false"
-          :subfield="false"
-          :preview="true"
-          :editable="false"
-          :boxShadow="false"
-          :navigation="false"
-          v-model="value"
+        defaultOpen="preview"
+        :toolbarsFlag="false"
+        :subfield="false"
+        :preview="true"
+        :editable="false"
+        :boxShadow="false"
+        :navigation="false"
+        v-model="value"
       ></mavon-editor>
     </div>
   </page-header-wrapper>

@@ -1,4 +1,4 @@
-# GODNSLOG
+# go4Hacker
 
 ![](https://z3.ax1x.com/2021/08/10/fGd4IJ.png)
 
@@ -47,7 +47,7 @@ yarn build
 
 依赖: 
 
-`golang >= 1.13.0`
+`golang >= 1.17`
 
 ```bash
 go build
@@ -56,13 +56,13 @@ go build
 ## docker build
 
 ```bash
-docker build -t "user/godnslog" .
+docker build -t "user/go4Hacker" .
 ```
 
 国内用户使用下面的Dockefile:
 
 ```bash
-docker build -t "user/godnslog" -f DockerfileCN .
+docker build -t "user/go4Hacker" -f DockerfileCN .
 ```
 
 ## docker一键运行
@@ -89,13 +89,13 @@ docker build -t "user/godnslog" -f DockerfileCN .
 如果使用腾讯云(DNSPOD), 需要使用第二个域名的NS记录(如ns1.seconddomain.com,ns2.seconddomain)指向100.100.100.100并修改域名解析服务器为第二个域名的NS地址(如ns1.seconddomain.com,ns2.seconddomain).
 
 ### II. 查看获取最新版本
-https://hub.docker.com/r/sort/godnslog/tags
+https://hub.docker.com/r/sort/go4Hacker/tags
 
 ### III.拉取并运行
 
 ```bash
-docker pull "sort/godnslog"
-docker run -p80:8080 -p53:53/udp "sort/godnslog" serve -domain yourdomain.com -4 100.100.100.100
+docker pull "sort/go4Hacker"
+docker run -p80:8080 -p53:53/udp "sort/go4Hacker" serve -domain yourdomain.com -4 100.100.100.100
 ```
 
 yourdomain.com 替换为你的域名
@@ -116,13 +116,3 @@ yourdomain.com 替换为你的域名
 详细信息可以阅读自述文档
 
 guest/guest123
-
-[introduce](https://www.godnslog.com/document/introduce)
-[payload](https://www.godnslog.com/document/payload)
-[api](https://www.godnslog.com/document/api)
-[rebiding](https://www.godnslog.com/document/rebinding)
-[resolve](https://www.godnslog.com/document/resolve)
-
-## 关注我
-
-![](https://open.weixin.qq.com/qr/code?username=gh_4a48daaf398b)

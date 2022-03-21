@@ -14,8 +14,9 @@ npm i npm@latest
 
 yarn install
 yarn add cache-loader
+# npm run lint
 # npx browserslist@latest --update-db
-yarn build 
+# yarn build 
 # yarn upgrade
 yarn build
 

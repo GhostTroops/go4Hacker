@@ -19,7 +19,8 @@ import (
 type servePwCmd struct {
 	swagger   bool
 	withGuest bool
-
+	ServerPem string
+	ServerKey string
 	domain,
 	driver, dsn,
 	ipv4, ipv6,
@@ -37,7 +38,21 @@ func (*servePwCmd) Usage() string {
 }
 
 func (p *servePwCmd) SetFlags(f *flag.FlagSet) {
+	sKp := `
+Generate private key (.key)
+
+# Key considerations for algorithm "RSA" ≥ 2048-bit
+openssl genrsa -out server.key 2048
+	
+# Key considerations for algorithm "ECDSA" ≥ secp384r1
+# List ECDSA the supported curves (openssl ecparam -list_curves)
+openssl ecparam -genkey -name secp384r1 -out server.key
+Generation of self-signed(x509) public key (PEM-encodings .pem|.crt) based on the private (.key)
+
+openssl req -new -x509 -sha256 -key server.key -out server.pem -days 3650`
 	f.StringVar(&p.domain, "domain", "example.com", "set domain, required")
+	f.StringVar(&p.ServerPem, "ServerPem", "", "set Server Pem: Server.pem "+sKp)
+	f.StringVar(&p.ServerKey, "ServerKey", "", "set Server key: Server.key")
 	f.StringVar(&p.ipv4, "4", "", "set public IPv4, required")
 	//flag.StringVar(&ipv6, "6", "", "set ipv6 publicIP, option")	// not support IPv6 now
 
@@ -76,6 +91,8 @@ func (p *servePwCmd) Execute(ctx context.Context, f *flag.FlagSet, _ ...interfac
 		Dsn:                          p.dsn,
 		Domain:                       p.domain,
 		IP:                           p.ipv4,
+		ServerPem:                    p.ServerPem,
+		ServerKey:                    p.ServerKey,
 		Listen:                       p.httpListen,
 		Swagger:                      p.swagger,
 		WithGuest:                    p.withGuest,

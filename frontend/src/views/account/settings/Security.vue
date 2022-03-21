@@ -14,15 +14,15 @@
       </a-list-item>
     </a-list>
     <hr>
-      <div>
-          <span>{{ $t('Change Password') }}</span>
-          <p></p>
-          <a-input-password placeholder="input password" v-model="value" />
-          <p></p>
-          <a-button type="primary" @click="changePassword">
-            {{ $t('Modify') }}
-          </a-button>
-      </div>
+    <div>
+      <span>{{ $t('Change Password') }}</span>
+      <p></p>
+      <a-input-password placeholder="input password" v-model="value" />
+      <p></p>
+      <a-button type="primary" @click="changePassword">
+        {{ $t('Modify') }}
+      </a-button>
+    </div>
   </div>
 </template>
 

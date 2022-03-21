@@ -1,15 +1,15 @@
 <template>
   <page-header-wrapper>
-      <mavon-editor
-          defaultOpen="preview"
-          :toolbarsFlag="false"
-          :subfield="false"
-          :preview="true"
-          :editable="false"
-          :boxShadow="false"
-          :navigation="false"
-          v-model="value"
-      ></mavon-editor>
+    <mavon-editor
+      defaultOpen="preview"
+      :toolbarsFlag="false"
+      :subfield="false"
+      :preview="true"
+      :editable="false"
+      :boxShadow="false"
+      :navigation="false"
+      v-model="value"
+    ></mavon-editor>
   </page-header-wrapper>
 </template>
 

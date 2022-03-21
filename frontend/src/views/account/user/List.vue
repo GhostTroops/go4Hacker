@@ -1,6 +1,6 @@
 <template>
   <div>
-<!--    <div class="table-page-search-wrapper">
+    <!--    <div class="table-page-search-wrapper">
       <a-form layout="inline">
         <a-row :gutter="48">
           <a-col :md="8" :sm="24">
@@ -31,7 +31,7 @@
     <div class="table-operator">
       <a-button type="primary" icon="plus" @click="handleEdit()">{{ $t('New User') }}</a-button>
       <a-button style="margin-left: 8px" @click="handleDeleteSelect" v-if="selectedRowKeys.length > 0">
-          {{ $t('Delete Select') }}
+        {{ $t('Delete Select') }}
       </a-button>
       <a-button type="dashed" @click="tableOption">{{ optionAlertShow && $t('Close') || $t('Open') }} {{ $t('Batch') }}</a-button>
     </div>

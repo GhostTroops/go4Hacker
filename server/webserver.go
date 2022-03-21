@@ -3,9 +3,11 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"sync"
@@ -31,6 +33,8 @@ type WebServerConfig struct {
 	Domain    string
 	IP        string
 	Listen    string
+	ServerPem string
+	ServerKey string
 	Swagger   bool
 	WithGuest bool
 
@@ -294,12 +298,35 @@ func (self *WebServer) Run() error {
 	s := &http.Server{
 		Handler: r,
 	}
-	l, err := net.Listen("tcp", self.Listen)
-	if err != nil {
-		return err
-	}
 	self.s = s
-	return s.Serve(l)
+	var llo net.Listener
+	// https://gist.github.com/6174/9ff5063a43f0edd82c8186e417aae1dc
+	// https://github.com/gin-gonic/website/blob/master/content/en/docs/examples/http2-server-push.md
+	// if "" != self.ServerPem && "" != self.ServerKey {
+	// 	// return http.ListenAndServeTLS(self.Listen, self.ServerPem, self.ServerKey, r)
+	// 	return r.RunTLS(":"+self.Listen, self.ServerPem, self.ServerKey)
+	// }
+	if "" != self.ServerPem && "" != self.ServerKey {
+		cer, err := tls.LoadX509KeyPair(self.ServerPem, self.ServerKey)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		config := &tls.Config{Certificates: []tls.Certificate{cer}}
+		l, err := tls.Listen("tcp", self.Listen, config)
+		if err != nil {
+			return err
+		}
+		llo = l
+
+	} else {
+		l, err := net.Listen("tcp", self.Listen)
+		if err != nil {
+			return err
+		}
+		llo = l
+	}
+	return s.Serve(llo)
 }
 
 func (self *WebServer) Shutdown(ctx context.Context) error {

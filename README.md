@@ -7,7 +7,9 @@ Automated penetration and auxiliary systems, providing XSS, XXE, DNS log, SSRF, 
 English Doc | [中文文档](https://github.com/hktalent/go4Hacker/blob/master/README_CN.md)
 
 ## features
-
+- gin
+- vue
+- suport http2, -ServerPem -ServerKey
 - Standard Domain Resolve Service
 - DNSLOG
 - HTTPLOG
@@ -40,6 +42,8 @@ requirements:
 `yarn`
 
 ```
+npm i npm@latest
+npm install --global yarn
 cd frontend
 yarn install
 yarn build
@@ -49,22 +53,35 @@ yarn build
 
 requirements: 
 
-`golang >= 1.13.0`
+`golang >= 1.17`
+`node >= 14.17.6`
+`npm >= 8.5.5`
+`yarn >= 1.22.17`
 
 ```bash
+cd frontend
+npm i npm@latest
+yarn install
+yarn add cache-loader
+yarn build
+cd ..
 go build
+
+# run help
+./go4Hacker -h
+./go4Hacker serve -h
 ```
 
 ## docker build
 
 ```bash
-docker build -t "user/godnslog" .
+docker build -t "user/go4Hacker" .
 ```
 
 For Chinese user:
 
 ```bash
-docker build -t "user/godnslog" -f DockerfileCN .
+docker build -t "user/go4Hacker" -f DockerfileCN .
 ```
 
 ## RUN
@@ -78,14 +95,14 @@ Some registrar to ns host must be different ip address, you can set one to a fak
 ii. self build
 
 ```bash
-docker run -p80:8080 -p53:53/udp "user/godnslog"  serve -domain yourdomain.com -4 100.100.100.100
+docker run -p80:8080 -p53:53/udp "user/go4Hacker"  serve -domain yourdomain.com -4 100.100.100.100
 ```
 
 or use dockerhub
 
 ```bash
-docker pull "sort/godnslog"
-docker run -p80:8080 -p53:53/udp -p80:8080  "sort/godnslog" serve -domain yourdomain.com -4 100.100.100.100
+docker pull "sort/go4Hacker"
+docker run -p80:8080 -p53:53/udp -p80:8080  "sort/go4Hacker" serve -domain yourdomain.com -4 100.100.100.100
 ```
 
 iii. access http://100.100.100.100
@@ -94,11 +111,6 @@ iii. access http://100.100.100.100
 
 guest/guest123
 
-[introduce](https://www.godnslog.com/document/introduce)
-[payload](https://www.godnslog.com/document/payload)
-[api](https://www.godnslog.com/document/api)
-[rebiding](https://www.godnslog.com/document/rebinding)
-[resolve](https://www.godnslog.com/document/resolve)
 
 ## TODO && Known Issues
 
@@ -108,5 +120,5 @@ guest/guest123
 - [ ] fix login logical problem
 
 ## build from
-https://github.com/chennqqi/godnslog
+https://github.com/chennqqi/go4Hacker
 but the go and node js modules here are updated to the latest

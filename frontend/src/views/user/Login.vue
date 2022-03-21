@@ -60,7 +60,7 @@
 
     </a-form>
 
-<!--    <two-step-captcha
+    <!--    <two-step-captcha
       v-if="requiredTwoStepCaptcha"
       :visible="stepCaptchaVisible"
       @success="stepCaptchaSuccess"
