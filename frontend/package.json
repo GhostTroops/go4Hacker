@@ -14,7 +14,7 @@
     "@ant-design-vue/pro-layout": "^0.3.12",
     "@antv/data-set": "^0.10.2",
     "ant-design-vue": "^1.6.2",
-    "axios": "^0.19.2",
+    "axios": ">=0.21.2",
     "bcryptjs": "^2.4.3",
     "cache-loader": "^4.1.0",
     "core-js": "^3.1.2",
