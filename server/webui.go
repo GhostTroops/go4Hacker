@@ -9,8 +9,8 @@ import (
 	"github.com/hktalent/go4Hacker/cache"
 	"github.com/hktalent/go4Hacker/models"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"github.com/hktalent/goutils/ginutils"
 	"github.com/sirupsen/logrus"
 )
