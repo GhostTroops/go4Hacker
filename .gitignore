@@ -15,6 +15,7 @@ godnslog
 # Dependency directories (remove the comment below to include it)
 # vendor/
 /ui
+actions-runner
 .DS_Store
 node_modules
 /dist
