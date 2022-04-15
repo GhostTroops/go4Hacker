@@ -42,11 +42,17 @@ requirements:
 `yarn`
 
 ```
+brew install yarn
 npm i npm@latest
 npm install --global yarn
 cd frontend
+npm i npm@latest
 yarn install
-yarn build
+yarn add cache-loader
+rm -rf ../dist
+yarn build --outDir ../dist
+cd ..
+
 ```
 	
 ## build backend
@@ -59,17 +65,15 @@ requirements:
 `yarn >= 1.22.17`
 
 ```bash
-cd frontend
-npm i npm@latest
-yarn install
-yarn add cache-loader
-yarn build
-cd ..
 go build
 
-# run help
-./go4Hacker -h
-./go4Hacker serve -h
+# set admin passwd
+./go4Hacker resetpw -u admin
+
+#eg :
+./go4Hacker serve -4 192.168.0.107 -domain 51pwn.com -lang zh-CN
+open http://0.0.0.0:8080
+
 ```
 
 ## docker build

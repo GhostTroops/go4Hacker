@@ -23,7 +23,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"xorm.io/xorm"
 )
 

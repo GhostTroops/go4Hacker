@@ -15,103 +15,103 @@ export const asyncRouterMap = [
     redirect: '/document/introduce',
     children: [
       // document
-      {
-        path: '/document',
-        name: 'Document',
-        component: RouteView,
-        meta: { title: 'menu.document', icon: 'copy', permission: [ 'document' ] },
-        redirect: '/document/introduce',
-        children: [
-          // introduce
-          {
-            path: '/document/introduce',
-            name: 'Introduce',
-            component: () => import('@/views/doc/Introduce'),
-            meta: {
-              title: 'menu.document.introduce',
-              keepAlive: true,
-              permission: ['document']
-            }
-          },
-          // install
-          {
-              path: '/document/install',
-              name: 'Install',
-              component: () => import('@/views/doc/Install'),
-              meta: {
-                title: 'menu.document.install',
-                keepAlive: true,
-                permission: ['document']
-              }
-          },
-          // payload
-          {
-            path: '/document/payload',
-            name: 'Payload',
-            component: () => import('@/views/doc/Payload'),
-            meta: {
-              title: 'menu.document.payload',
-              keepAlive: true,
-              permission: ['document']
-            }
-          },
-          // api
-          {
-            path: '/document/api',
-            name: 'Api',
-            component: () => import('@/views/doc/Api'),
-            meta: {
-              title: 'menu.document.api',
-              keepAlive: true,
-              permission: ['document']
-            }
-          },
-          // rebinding
-          {
-            path: '/document/rebinding',
-            name: 'Rebinding',
-            component: () => import('@/views/doc/Rebinding'),
-            meta: {
-              title: 'menu.document.rebinding',
-              keepAlive: true,
-              permission: ['document']
-            }
-          },
-          // history
-          {
-            path: '/document/history',
-            name: 'History',
-            component: () => import('@/views/doc/History'),
-            meta: {
-              title: 'menu.document.history',
-              keepAlive: true,
-              permission: ['document']
-            }
-          },
-          // resolve
-          {
-              path: '/document/resolve',
-              name: 'Resolve',
-              component: () => import('@/views/doc/Resolve'),
-              meta: {
-                title: 'menu.document.resolve',
-                keepAlive: true,
-                permission: ['document']
-              }
-          },
-          // xip
-          {
-            path: '/document/xip',
-            name: 'Xip',
-            component: () => import('@/views/doc/Xip'),
-            meta: {
-              title: 'menu.document.xip',
-              keepAlive: true,
-              permission: ['document']
-            }
-          }
-        ]
-      },
+      // {
+      //   path: '/document',
+      //   name: 'Document',
+      //   component: RouteView,
+      //   meta: { title: 'menu.document', icon: 'copy', permission: [ 'document' ] },
+      //   redirect: '/document/introduce',
+      //   children: [
+      //     // introduce
+      //     {
+      //       path: '/document/introduce',
+      //       name: 'Introduce',
+      //       component: () => import('@/views/doc/Introduce'),
+      //       meta: {
+      //         title: 'menu.document.introduce',
+      //         keepAlive: true,
+      //         permission: ['document']
+      //       }
+      //     },
+      //     // install
+      //     {
+      //         path: '/document/install',
+      //         name: 'Install',
+      //         component: () => import('@/views/doc/Install'),
+      //         meta: {
+      //           title: 'menu.document.install',
+      //           keepAlive: true,
+      //           permission: ['document']
+      //         }
+      //     },
+      //     // payload
+      //     {
+      //       path: '/document/payload',
+      //       name: 'Payload',
+      //       component: () => import('@/views/doc/Payload'),
+      //       meta: {
+      //         title: 'menu.document.payload',
+      //         keepAlive: true,
+      //         permission: ['document']
+      //       }
+      //     },
+      //     // api
+      //     {
+      //       path: '/document/api',
+      //       name: 'Api',
+      //       component: () => import('@/views/doc/Api'),
+      //       meta: {
+      //         title: 'menu.document.api',
+      //         keepAlive: true,
+      //         permission: ['document']
+      //       }
+      //     },
+      //     // rebinding
+      //     {
+      //       path: '/document/rebinding',
+      //       name: 'Rebinding',
+      //       component: () => import('@/views/doc/Rebinding'),
+      //       meta: {
+      //         title: 'menu.document.rebinding',
+      //         keepAlive: true,
+      //         permission: ['document']
+      //       }
+      //     },
+      //     // history
+      //     {
+      //       path: '/document/history',
+      //       name: 'History',
+      //       component: () => import('@/views/doc/History'),
+      //       meta: {
+      //         title: 'menu.document.history',
+      //         keepAlive: true,
+      //         permission: ['document']
+      //       }
+      //     },
+      //     // resolve
+      //     {
+      //         path: '/document/resolve',
+      //         name: 'Resolve',
+      //         component: () => import('@/views/doc/Resolve'),
+      //         meta: {
+      //           title: 'menu.document.resolve',
+      //           keepAlive: true,
+      //           permission: ['document']
+      //         }
+      //     },
+      //     // xip
+      //     {
+      //       path: '/document/xip',
+      //       name: 'Xip',
+      //       component: () => import('@/views/doc/Xip'),
+      //       meta: {
+      //         title: 'menu.document.xip',
+      //         keepAlive: true,
+      //         permission: ['document']
+      //       }
+      //     }
+      //   ]
+      // },
 
       // records
       {
