@@ -47,10 +47,9 @@ requirements:
 
 ```
 brew install yarn
-npm i npm@latest
+npm i -g npm@latest
 npm install --global yarn
 cd frontend
-npm i npm@latest
 yarn install
 yarn add cache-loader
 rm -rf ../dist
