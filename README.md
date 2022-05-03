@@ -9,7 +9,8 @@ https://github.com/hktalent/DNS_Server
 
 Automated penetration and auxiliary systems, providing XSS, XXE, DNS log, SSRF, RCE, web netcat and other Servers
 
-English Doc | [中文文档](https://github.com/hktalent/go4Hacker/blob/master/README_CN.md)
+![2022-05-03 20 38 47](https://user-images.githubusercontent.com/18223385/166454480-3cc5be14-ada6-488c-acbd-4622b77f8893.gif)
+
 
 ## features
 - gin
