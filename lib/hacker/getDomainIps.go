@@ -1,11 +1,7 @@
 package hacker
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"log"
 	"net"
-	"net/http"
 )
 
 // domain
@@ -31,58 +27,59 @@ func GetDomian2IpsAll(domain string) []string {
 	return GetDomian2Ips(domain, 0)
 }
 
-type DnsJson struct {
-	Status   int  `json:"Status"`
-	TC       bool `json:"TC"`
-	RD       bool `json:"RD"`
-	RA       bool `json:"RA"`
-	AD       bool `json:"AD"`
-	CD       bool `json:"CD"`
-	Question []struct {
-		Name string `json:"name"`
-		Type int    `json:"type"`
-	} `json:"Question"`
-	Answer []struct {
-		Name string `json:"name"`
-		Type int    `json:"type"`
-		TTL  int    `json:"TTL"`
-		Data string `json:"data"`
-	} `json:"Answer"`
-}
-
-func GetDomian2Ips4Cloudflare(domain string) []string {
-	aIps := []string{}
-	req, err := http.NewRequest("GET", "https://cloudflare-dns.com/dns-query", nil)
-	if err != nil {
-		log.Println(err)
-		return aIps
-	}
-
-	q := req.URL.Query()
-	q.Add("ct", "application/dns-json")
-	q.Add("name", domain)
-	req.URL.RawQuery = q.Encode()
-	client := &http.Client{}
-	if err != nil {
-		log.Println(err)
-		return aIps
-	}
-	res, err := client.Do(req)
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if nil == err {
-		var dnsResult DnsJson
-		if err := json.Unmarshal(body, &dnsResult); err != nil {
-			log.Println(err)
-			return aIps
-		}
-
-		for _, dnsAnswer := range dnsResult.Answer {
-			aIps = append(aIps, dnsAnswer.Data)
-		}
-	}
-	return aIps
-}
+//
+//type DnsJson struct {
+//	Status   int  `json:"Status"`
+//	TC       bool `json:"TC"`
+//	RD       bool `json:"RD"`
+//	RA       bool `json:"RA"`
+//	AD       bool `json:"AD"`
+//	CD       bool `json:"CD"`
+//	Question []struct {
+//		Name string `json:"name"`
+//		Type int    `json:"type"`
+//	} `json:"Question"`
+//	Answer []struct {
+//		Name string `json:"name"`
+//		Type int    `json:"type"`
+//		TTL  int    `json:"TTL"`
+//		Data string `json:"data"`
+//	} `json:"Answer"`
+//}
+//
+//func GetDomian2Ips4Cloudflare(domain string) []string {
+//	aIps := []string{}
+//	req, err := http.NewRequest("GET", "https://cloudflare-dns.com/dns-query", nil)
+//	if err != nil {
+//		log.Println(err)
+//		return aIps
+//	}
+//
+//	q := req.URL.Query()
+//	q.Add("ct", "application/dns-json")
+//	q.Add("name", domain)
+//	req.URL.RawQuery = q.Encode()
+//	client := &http.Client{}
+//	if err != nil {
+//		log.Println(err)
+//		return aIps
+//	}
+//	res, err := client.Do(req)
+//	defer res.Body.Close()
+//	body, err := ioutil.ReadAll(res.Body)
+//	if nil == err {
+//		var dnsResult DnsJson
+//		if err := json.Unmarshal(body, &dnsResult); err != nil {
+//			log.Println(err)
+//			return aIps
+//		}
+//
+//		for _, dnsAnswer := range dnsResult.Answer {
+//			aIps = append(aIps, dnsAnswer.Data)
+//		}
+//	}
+//	return aIps
+//}
 
 //func main() {
 //	log.Println(GetDomian2IpsAll("www.sina.com.cn"))
