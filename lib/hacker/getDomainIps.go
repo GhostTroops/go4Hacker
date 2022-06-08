@@ -14,7 +14,8 @@ func GetDomian2Ips(domain string, opType int) []string {
 			if ipv4 := ip.To4(); ipv4 != nil {
 				aIps = append(aIps, ipv4.String())
 			}
-		} else if 0 == opType || 2 == opType {
+		}
+		if 0 == opType || 2 == opType {
 			if ipv6 := ip.To16(); ipv6 != nil {
 				aIps = append(aIps, ipv6.String())
 			}
