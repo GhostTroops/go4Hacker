@@ -108,37 +108,7 @@
             }
           ]" />
       </a-form-item>
-      <!-- <a-form-item
-        :labelCol="labelCol"
-        :wrapperCol="wrapperCol"
-        :label="$t('role')"
-        hasFeedback
-      >
-        <a-radio-group
-         name="role"
-         style="width: 100%"
-         v-decorator="[
-           'role',
-           {
-              rules: [
-                { required: true },
-                { type: 'integer' }
-              ],
-              initialValue: 1
-           }
-         ]">
-          <a-radio :value="1">
-            {{ $t('Normal User') }}
-          </a-radio>
-          <a-radio :value="2">
-            {{ $t('Admin') }}
-          </a-radio>
-        </a-radio-group>
-      </a-form-item> -->
-
-      <a-form-item
-        v-bind="buttonCol"
-      >
+      <a-form-item v-bind="buttonCol">
         <a-row type="flex" justify="space-between">
           <a-col :span="3">
             <a-button type="primary" @click="handleSubmit">{{ $t('Submit') }}</a-button>
