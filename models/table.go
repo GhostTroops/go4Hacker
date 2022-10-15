@@ -40,15 +40,15 @@ var (
 
 // tbl_user
 type TblUser struct {
-	Id      int64  `xorm:"pk autoincr"`
-	Name    string `xorm:"varchar(64) notnull unique"`
+	Id       int64  `xorm:"pk autoincr"`
+	Name     string `xorm:"varchar(64) notnull unique"`
 	FullName string `xorm:"varchar(64) notnull"`
-	Email   string `xorm:"varchar(64) notnull unique"`
-	Company string `xorm:"varchar(64) notnull"`
-	Role    int    `xorm:"tinyint notnull default 0"`
-	ShortId string `xorm:"varchar(32) notnull unique"`
-	Token   string `xorm:"varchar(128) notnull unique"`
-	Pass    string `xorm:"varchar(128) notnull"`
+	Email    string `xorm:"varchar(64) notnull unique"`
+	Company  string `xorm:"varchar(64) notnull"`
+	Role     int    `xorm:"tinyint notnull default 0"`
+	ShortId  string `xorm:"varchar(32) notnull unique"`
+	Token    string `xorm:"varchar(128) notnull unique"`
+	Pass     string `xorm:"varchar(128) notnull"`
 
 	//settings
 	Lang            string   `xorm:"varchar(16) default('zh-CN') notnull"`
@@ -69,7 +69,7 @@ type TblDns struct {
 	Ip     string    `xorm:"varchar(16) notnull"`
 	Ctime  time.Time `xorm:"datetime"`
 	Atime  time.Time `xorm:"datetime created"`
-	Hidden  bool     `xorm:"default false"`
+	Hidden bool      `xorm:"default false"`
 }
 
 type TblHttp struct {
@@ -84,7 +84,7 @@ type TblHttp struct {
 	Ua     string    `xorm:"text"`
 	Ctime  time.Time `xorm:"datetime"`
 	Atime  time.Time `xorm:"datetime created"`
-	Hidden  bool     `xorm:"default false"`
+	Hidden bool      `xorm:"default false"`
 }
 
 type TblResolve struct {
@@ -97,13 +97,14 @@ type TblResolve struct {
 	Utime time.Time `xorm:"updated"`
 }
 
+// dns 解析数据
 type Resolves []TblResolve
 
 func (rs Resolves) Len() int           { return len(rs) }
 func (rs Resolves) Less(i, j int) bool { return rs[i].Value < rs[j].Value }
 func (rs Resolves) Swap(i, j int)      { rs[i], rs[j] = rs[j], rs[i] }
 
-// CNAME,TXT,MX 同一个host只允许配置1个
+// CNAME,TXT,MX 同一个 host 只允许配置1个
 func (rs Resolves) GetIndex(r *Resolve) int {
 	for i := 0; i < len(rs); i++ {
 		if rs[i].Id == r.Id {
@@ -113,7 +114,7 @@ func (rs Resolves) GetIndex(r *Resolve) int {
 	return -1
 }
 
-// CNAME,TXT,MX 同一个host只允许配置1个
+// CNAME,TXT,MX 同一个 host 只允许配置1个
 func (rs Resolves) GetTypeConflict(r *Resolve) (*Resolve, Resolves) {
 	var groups Resolves
 	cm, ok := resolveTypeConflictMap[r.Type]
