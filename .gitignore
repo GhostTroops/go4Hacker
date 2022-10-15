@@ -5,7 +5,10 @@
 *.so
 *.dylib
 godnslog
-
+go4Hacker
+db/godnslog.db
+db/godnslog.db
+frontend/node_modules
 # Test binary, built with `go test -c`
 *.test
 
@@ -42,5 +45,5 @@ package-lock.json
 *.lock
 *.sum
 dist
-godnslog.db
+db/godnslog.db
 /.gitee
