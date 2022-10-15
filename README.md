@@ -12,7 +12,6 @@ more to see:http://github.com/hktalent/goSqlite_gorm
 <img width=950 src=https://user-images.githubusercontent.com/18223385/168472883-4bfb402c-8c90-46c0-a8db-a5b22b8b6a25.gif>
 
 
-
 ## features
 - gin
 - vue
@@ -69,7 +68,7 @@ cd ..
 
 requirements: 
 
-`golang >= 1.17`
+`golang >= 1.18`
 `node >= 14.17.6`
 `npm >= 8.5.5`
 `yarn >= 1.22.17`
@@ -80,7 +79,7 @@ go build
 # set admin passwd
 ./go4Hacker resetpw -u admin
 
-#eg :
+#eg : 实际运行时，192.168.0.107 调整为公网 ip地址，也就是域名 51pwn.com 指向的公网ip地址
 ./go4Hacker serve -4 192.168.0.107 -domain 51pwn.com -lang zh-CN
 open http://0.0.0.0:8080
 

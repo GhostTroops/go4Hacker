@@ -1,5 +1,5 @@
 <template>
-  <a-result status="404" title="404" sub-title="Sorry, the page you visited does not exist.">
+  <a-result status="404" title="404" sub-title="您访问的页面不存在">
     <template #extra>
       <a-button type="primary" @click="toHome">
         Back Home

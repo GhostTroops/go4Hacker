@@ -4,14 +4,14 @@ import storage from 'store'
 import moment from 'moment'
 
 // default lang
-import enUS from './lang/en-US'
+import enUS from './lang/zh-CN'
 
 Vue.use(VueI18n)
 
-export const defaultLang = 'en-US' // en-US
+export const defaultLang = 'zh-CN' // zh-CN
 
 const messages = {
-  'en-US': {
+  'zh-CN': {
     ...enUS
   }
 }

@@ -14,17 +14,17 @@ const (
 	DefaultExpiration = gocache.DefaultExpiration
 )
 
+// 内存k-v数据库
 type Cache struct {
 	*gocache.Cache
 	rcdCh chan interface{}
 }
 
+// 内存数据库，大并发系统，有效期设置过大会导致磁盘、内存开销大
 func NewCache(def, interval time.Duration) *Cache {
 	var c Cache
-	{
-		c.Cache = gocache.New(def, interval)
-		c.rcdCh = make(chan interface{}, 128)
-	}
+	c.Cache = gocache.New(def, interval)
+	c.rcdCh = make(chan interface{}, 128) // 缓冲128
 	return &c
 }
 

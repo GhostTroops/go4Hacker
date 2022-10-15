@@ -150,12 +150,10 @@ func (s *DnsServer) Shutdown() {
 
 func (s *DnsServer) log(rcd *DnsRecord) {
 	s.wg.Add(1)
-
 	//async log
 	go func() {
 		defer s.wg.Done()
-		store := s.store
-		store.Input() <- rcd
+		s.store.Input() <- rcd
 	}()
 }
 

@@ -5,7 +5,16 @@ const loginApi = {
   Logout: '/auth/logout',
   Role: '/auth/role',
   UserInfo: '/auth/info',
-  UserMenu: '/auth/nav'
+  UserMenu: '/auth/nav',
+  GetCaptchaId: '/auth/captcha'
+}
+
+export function getCaptchaId (parameter) {
+  return request({
+    url: loginApi.GetCaptchaId,
+    method: 'get',
+    params: parameter
+  })
 }
 
 /**

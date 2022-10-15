@@ -4,25 +4,25 @@
       <div class="top">
         <div class="header">
           <a href="/">
-            <img src="~@/assets/logo.png" class="logo" alt="logo">
-            <span class="title">GO DNSLOG</span>
+            <!-- <img src="~@/assets/logo.png" class="logo" alt="logo"> -->
+            <span class="title">360漏洞云DNSLog平台</span>
           </a>
         </div>
-        <div class="desc">
-          An exquisite dns&http log server for verify SSRF/XXE/RFI/RCE vulnerability
-        </div>
+        <!-- <div class="desc">
+          SSRF/XXE/RFI/RCE漏洞dns&http LOG验证服务器
+        </div> -->
       </div>
 
       <router-view />
 
       <div class="footer">
         <div class="links">
-          <a href="https://github.com/chennqqi/godnslog" target="_blank">Wechat</a>
-          <a href="https://github.com/chennqqi/godnslog" target="_blank">Github</a>
-          <a href="https://github.com/chennqqi" target="_blank">@chennqqi</a>
+          <!-- <a href="https://github.com/hktalent/go4Hacker" target="_blank">Wechat</a>
+          <a href="https://github.com/hktalent/go4Hacker" target="_blank">Github</a>
+          <a href="https://github.com/chennqqi" target="_blank">@chennqqi</a> -->
         </div>
         <div class="copyright">
-          <a href="https://www.godnslog.com">Copyright &copy; 2021 godnslog.com</a>
+          <!-- <a href="https://www.godnslog.com">Copyright &copy; 2021 godnslog.com</a> -->
         </div>
       </div>
     </div>

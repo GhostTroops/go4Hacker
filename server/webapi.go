@@ -12,8 +12,8 @@ import (
 
 	"github.com/hktalent/go4Hacker/models"
 
+	"github.com/chennqqi/goutils/ginutils"
 	"github.com/gin-gonic/gin"
-	"github.com/hktalent/goutils/ginutils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -265,5 +265,43 @@ func (self *WebServer) record(c *gin.Context) {
 	}
 	self.resp(c, 200, &CR{
 		Message: "OK",
+	})
+}
+
+func (self *WebServer) getAuthorizationInfo(c *gin.Context) {
+	T := getTranslateFunc(c)
+
+	var key, keyExist = c.GetQuery("apiKey")
+
+	if !keyExist {
+		self.resp(c, 400, &CR{
+			Code:    CodeBadData,
+			Message: T("bad input"),
+		})
+		return
+	}
+	session := self.orm.NewSession()
+	defer session.Close()
+	var user = new(models.TblUser)
+	exist, err := session.Where(`token=?`, key).Get(user)
+
+	if err != nil {
+		logrus.Errorf("[webui.go::userLogin] orm.Get: %v", err)
+		self.respData(c, 502, CodeServerInternal, T("bad service"), nil)
+		return
+	} else if !exist {
+		logrus.Infof("[webui.go::userLogin] not found: %v", key)
+		self.respData(c, 401, CodeBadData, T("bad Token"), nil)
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"username": user.Name,
+		"name":     user.FullName,
+		"company":  user.Company,
+		"email":    user.Email,
+		"authunit": self.WebServerConfig.Author,
+		"resp":     "授权成功",
+		"lang":     user.Lang,
 	})
 }

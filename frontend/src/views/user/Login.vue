@@ -13,7 +13,8 @@
         @change="handleTabClick"
       >
         <a-tab-pane key="tab1" tab="">
-          <a-alert v-if="isLoginError" type="error" showIcon style="margin-bottom: 24px;" message="账户或密码错误（admin/ant.design )" />
+          <a-alert v-if="isLoginError" type="error" showIcon style="margin-bottom: 24px;" message="账户或密码错误" />
+          <a-alert v-if="verifycodeError" type="error" showIcon style="margin-bottom: 24px;" message="验证码错误" />
           <a-form-item>
             <a-input
               size="large"
@@ -40,6 +41,28 @@
               <a-icon slot="prefix" type="lock" :style="{ color: 'rgba(0,0,0,.25)' }"/>
             </a-input-password>
           </a-form-item>
+
+          <a-form-item>
+            <a-input
+              style="width: 70%;float: left"
+              size="large"
+              type="text"
+              :placeholder="$t('VerifyCode')"
+              v-decorator="[
+                'verifycode',
+                {
+                  rules: [
+                    { required: true, message: '请输入验证码' }
+                  ], validateTrigger: 'blur'
+                }
+              ]"
+            >
+              <a-icon slot="prefix" type="key" :style="{ color: 'rgba(0,0,0,.25)' }"/>
+            </a-input>
+            <div style="width: 30%;float: right;cursor: pointer;margin: 0" @click="getCaptchaImgUrl" title="看不清？点击切换">
+              <img :src="captchaImgUrl">
+            </div>
+          </a-form-item>
         </a-tab-pane>
       </a-tabs>
 
@@ -60,7 +83,7 @@
 
     </a-form>
 
-    <!--    <two-step-captcha
+<!--    <two-step-captcha
       v-if="requiredTwoStepCaptcha"
       :visible="stepCaptchaVisible"
       @success="stepCaptchaSuccess"
@@ -73,6 +96,7 @@
 
 import { mapActions } from 'vuex'
 import { timeFix } from '@/utils/util'
+import { getCaptchaId } from '@/api/login'
 
 export default {
   components: {
@@ -80,11 +104,14 @@ export default {
   },
   data () {
     return {
+      captchaId: '',
+      captchaImgUrl: '',
       customActiveKey: 'tab1',
       loginBtn: false,
       // login type: 0 email, 1 username, 2 telephone
       loginType: 0,
       isLoginError: false,
+      verifycodeError: false,
       requiredTwoStepCaptcha: false,
       stepCaptchaVisible: false,
       form: this.$form.createForm(this),
@@ -100,8 +127,17 @@ export default {
   created () {
     console.log('login.vue:created')
   },
+  mounted () {
+    this.getCaptchaImgUrl()
+  },
   methods: {
     ...mapActions(['Login', 'Logout']),
+    getCaptchaImgUrl () {
+      getCaptchaId({ 'v': Math.random() }).then(res => {
+        this.captchaId = res.result
+        this.captchaImgUrl = '/auth/show/' + this.captchaId
+      })
+    },
     // handler
     handleUsernameOrEmail (rule, value, callback) {
       const { state } = this
@@ -128,7 +164,7 @@ export default {
 
       state.loginBtn = true
 
-      const validateFieldsKey = customActiveKey === 'tab1' ? ['username', 'password'] : ['mobile', 'captcha']
+      const validateFieldsKey = customActiveKey === 'tab1' ? ['username', 'password', 'verifycode'] : ['mobile', 'captcha']
 
       validateFields(validateFieldsKey, { force: true }, (err, values) => {
         if (!err) {
@@ -141,6 +177,8 @@ export default {
           // const bcrypthash = bcrypt.hashSync(values.password, 10)
           // console.log('bcrypt=', bcrypthash)
           loginParams.password = values.password
+          loginParams['captcha_id'] = this.captchaId
+          loginParams['verifycode'] = values.verifycode
           Login(loginParams)
             .then((res) => this.loginSuccess(res))
             .catch(err => this.requestFailed(err))
@@ -178,7 +216,14 @@ export default {
       this.isLoginError = false
     },
     requestFailed (err) {
-      this.isLoginError = true
+      this.getCaptchaImgUrl()
+      if (((err.response || {}).data || {}).code === 8) {
+        this.verifycodeError = true
+        this.isLoginError = false
+      } else {
+        this.verifycodeError = false
+        this.isLoginError = true
+      }
       this.$notification['error']({
         message: this.$t('Error'),
         description: ((err.response || {}).data || {}).message || '请求出现错误，请稍后再试',

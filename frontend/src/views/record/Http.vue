@@ -145,7 +145,10 @@ export default {
         {
           title: this.$t('UpdateTime'),
           dataIndex: 'ctime',
-          sorter: true
+          sorter: true,
+          customRender: (text, record, index) => {
+            return moment(text).format('YYYY-MM-DD HH:mm:ss')
+          }
         },
         {
           title: this.$t('Action'),

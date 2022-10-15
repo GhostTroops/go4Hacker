@@ -15,6 +15,7 @@ import (
 	"github.com/hktalent/go4Hacker/models"
 )
 
+// 客户端请求
 type Client struct {
 	*http.Client
 
@@ -45,6 +46,7 @@ func NewClient(domain, secret string, ssl bool) (*Client, error) {
 	return client, nil
 }
 
+// v 为子域名
 func (self *Client) BuildDnsDomain(v interface{}) string {
 	return fmt.Sprintf("%v.%v", v, self.domain)
 }

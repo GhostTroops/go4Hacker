@@ -77,7 +77,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/chennqqi/godnslog/client"
+	"github.com/hktalent/go4Hacker/client"
 )
 
 func main() {

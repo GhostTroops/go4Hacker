@@ -113,7 +113,7 @@ export default {
           dataIndex: 'timestamp',
           sorter: true,
           customRender: (text, record, index) => {
-            return moment(text * 1000).format('YYYY-MM-DD hh:mm:ss')
+            return moment(text * 1000).format('YYYY-MM-DD HH:mm:ss')
           }
         },
         {

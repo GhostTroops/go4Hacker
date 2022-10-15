@@ -16,6 +16,7 @@ const (
 	CodeServerInternal = models.CodeServerInternal
 	CodeNoData         = models.CodeNoData
 	CodeExpire         = models.CodeExpire
+	VerifycodeErr      = models.VerifycodeErr
 )
 
 const (

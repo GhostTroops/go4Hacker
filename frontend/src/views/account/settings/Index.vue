@@ -10,11 +10,11 @@
             type="inner"
             @openChange="onOpenChange"
           >
-            <a-menu-item key="/setting/system/base">
+            <!-- <a-menu-item key="/setting/system/base">
               <router-link :to="{ name: 'BaseSetting' }">
                 {{ $t('menu.setting.system.base') }}
               </router-link>
-            </a-menu-item>
+            </a-menu-item> -->
             <a-menu-item key="/setting/system/security">
               <router-link :to="{ name: 'SecuritySetting' }">
                 {{ $t('menu.setting.system.security') }}

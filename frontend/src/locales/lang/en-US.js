@@ -28,6 +28,11 @@ const locale = {
   'menu.record.dns': 'DNS',
   'menu.record.http': 'HTTP',
 
+  'menu.allrecord': 'All Record',
+  'menu.allrecord.dns': 'DNS',
+  'menu.allrecord.http': 'HTTP',
+  'menu.allrecord.count': "Count",
+
   'menu.setting': 'Management',
   'menu.setting.system.security': 'Security',
   'menu.setting.system.base': 'Basic',

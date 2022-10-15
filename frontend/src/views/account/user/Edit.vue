@@ -44,6 +44,46 @@
       <a-form-item
         :labelCol="labelCol"
         :wrapperCol="wrapperCol"
+        :label="$t('FullName')"
+        hasFeedback
+      >
+        <a-input
+          placeholder="请输入姓名"
+          v-decorator="[
+            'full_name',
+            {
+              rules: [
+                { required: true, message: $t('请输入规则编号') },
+                { required: true, min: 2, message: $t('最小长度2') },
+                { whitespace: true, message: $t('不能为空') }
+              ]
+            }
+          ]"
+        ></a-input>
+      </a-form-item>
+      <a-form-item
+        :labelCol="labelCol"
+        :wrapperCol="wrapperCol"
+        :label="$t('ShortId')"
+        hasFeedback
+      >
+        <a-input
+          placeholder="请输入三级域名"
+          v-decorator="[
+            'short_id',
+            {
+              rules: [
+                { validator: domainValidator, trigger: 'blur' },
+                { required: true, min: 2, max: 64, message: $t('长度为2到64个字符') },
+                { whitespace: true, message: $t('不能为空') },
+              ]
+            }
+          ]"
+        ></a-input>
+      </a-form-item>
+      <a-form-item
+        :labelCol="labelCol"
+        :wrapperCol="wrapperCol"
         :label="$t('Email')"
         hasFeedback
       >
@@ -55,6 +95,26 @@
               rules: [
                 { required: true },
                 { type: 'email', message: $t('请输入正确的邮件地址') }
+              ]
+            }
+          ]"
+        ></a-input>
+      </a-form-item>
+      <a-form-item
+        :labelCol="labelCol"
+        :wrapperCol="wrapperCol"
+        :label="$t('Company')"
+        hasFeedback
+      >
+        <a-input
+          placeholder="请输入公司名称"
+          v-decorator="[
+            'company',
+            {
+              rules: [
+                { required: true, message: $t('请输入规则编号') },
+                { required: true, min: 2, message: $t('最小长度2') },
+                { whitespace: true, message: $t('不能为空') }
               ]
             }
           ]"
@@ -102,13 +162,43 @@
             'password',
             {
               rules: [
-                { required: true },
-                { validator: passwordValidator }
+                { required: createMode },
+                { min: 6, message: $t('最小长度为6')  }
               ]
             }
           ]" />
       </a-form-item>
-      <a-form-item v-bind="buttonCol">
+      <!-- <a-form-item
+        :labelCol="labelCol"
+        :wrapperCol="wrapperCol"
+        :label="$t('role')"
+        hasFeedback
+      >
+        <a-radio-group
+         name="role"
+         style="width: 100%"
+         v-decorator="[
+           'role',
+           {
+              rules: [
+                { required: true },
+                { type: 'integer' }
+              ],
+              initialValue: 1
+           }
+         ]">
+          <a-radio :value="1">
+            {{ $t('Normal User') }}
+          </a-radio>
+          <a-radio :value="2">
+            {{ $t('Admin') }}
+          </a-radio>
+        </a-radio-group>
+      </a-form-item> -->
+
+      <a-form-item
+        v-bind="buttonCol"
+      >
         <a-row type="flex" justify="space-between">
           <a-col :span="3">
             <a-button type="primary" @click="handleSubmit">{{ $t('Submit') }}</a-button>
@@ -142,6 +232,15 @@ function validatePassword (rule, val, callback) {
   callback()
 };
 
+function domainValidator (rule, value, callback) {
+  const reg = /^[a-zA-Z\d-]+$/
+  if (!reg.test(value)) {
+    callback(new Error('只能输入字母数字和-'))
+  } else {
+    callback()
+  }
+}
+
 export default {
   name: 'TableEdit',
   props: {
@@ -169,6 +268,7 @@ export default {
       form: this.$form.createForm(this),
       id: 0,
       passwordValidator: passwordValidator,
+      domainValidator: domainValidator,
       createMode: false
     }
   },
@@ -236,7 +336,7 @@ export default {
           const dupvalue = {}
           Object.assign(dupvalue, data)
           dupvalue.role = role
-          const formData = pick(dupvalue, [ 'id', 'username', 'email', 'password', 'role' ])
+          const formData = pick(dupvalue, [ 'id', 'username', 'full_name', 'short_id', 'email', 'company', 'password', 'role' ])
           form.setFieldsValue(formData)
         }
     }

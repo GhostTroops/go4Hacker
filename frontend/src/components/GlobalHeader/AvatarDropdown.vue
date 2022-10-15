@@ -1,15 +1,15 @@
 <template>
-  <a-dropdown v-if="currentUser && currentUser.name" placement="bottomRight">
+  <a-dropdown v-if="username" placement="bottomRight">
     <span class="ant-pro-account-avatar">
-      <a-avatar size="small" src="https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png" class="antd-pro-global-header-index-avatar" />
-      <span>{{ currentUser.name }}</span>
+      <!-- <a-avatar size="small" src="https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png" class="antd-pro-global-header-index-avatar" /> -->
+      <span>{{ username }}</span>
     </span>
     <template v-slot:overlay>
       <a-menu class="ant-pro-drop-down menu" :selected-keys="[]">
-        <a-menu-item v-if="menu" key="center" @click="handleToBase">
+        <!-- <a-menu-item v-if="menu" key="center" @click="handleToBase">
           <a-icon type="user" />
           {{ $t('menu.setting.system.base') }}
-        </a-menu-item>
+        </a-menu-item> -->
         <a-menu-item v-if="menu" key="settings" @click="handleToSecurity">
           <a-icon type="setting" />
           {{ $t('menu.setting.system.security') }}
@@ -42,10 +42,15 @@ export default {
       default: true
     }
   },
+  computed: {
+    username () {
+      return this.$store.getters.userInfo.username
+    }
+  },
   methods: {
-    handleToBase () {
-      this.$router.push({ path: '/setting/system/base' })
-    },
+    // handleToBase () {
+    //   this.$router.push({ path: '/setting/system/base' })
+    // },
     handleToSecurity () {
       this.$router.push({ path: '/setting/system/security' })
     },
@@ -58,7 +63,8 @@ export default {
           //   setTimeout(Math.random() > 0.5 ? resolve : reject, 1500)
           // }).catch(() => console.log('Oops errors!'))
           return this.$store.dispatch('Logout').then(() => {
-            this.$router.push({ name: 'login' })
+            // this.$router.push({ name: 'login' })
+             window.location = '/user/login'
           })
         },
         onCancel () {}

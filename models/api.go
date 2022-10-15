@@ -16,6 +16,7 @@ const (
 	CodeServerInternal = 5
 	CodeNoData         = 6
 	CodeExpire         = 7
+	VerifycodeErr	   = 8
 
 	RoleSuper  = 0
 	RoleAdmin  = 1
@@ -30,6 +31,8 @@ type LoginRequest struct {
 	Email    string `json:"email"`
 	Username string `json:"username"`
 	Password string `json:"password"`
+	CaptchaId string `json:"captcha_id"`
+	Verifycode string `json:"verifycode"`
 }
 
 type LoginResponse struct {
@@ -65,16 +68,24 @@ type UserInfo struct {
 	Id       int64     `json:"id"`
 	Name     string    `json:"username"`
 	Email    string    `json:"email"`
+	Company	 string    `json:"company"`
+	FullName string	   `json:"full_name"`
+	ShortId  string    `json:"short_id"`
 	Avatar   string    `json:"avatar"`
 	Language string    `json:"lang"`
 	Role     Role      `json:"role"`
 	Utime    time.Time `json:"utime"`
+	DnsCount int64 	   `json:"dns_count"`
+	HttpCount int64    `json:"http_count"`
 }
 
 type UserRequest struct {
 	Id       int64  `json:"id"`
 	Name     string `json:"username"`
 	Email    string `json:"email"`
+	Company	 string `json:"company"`
+	FullName string	`json:"full_name"`
+	ShortId  string `json:"short_id"`
 	Password string `json:"password"`
 	Role     int    `json:"role"`
 	Language string `json:"lang"`
@@ -123,6 +134,9 @@ type DnsRecord struct {
 	Domain   string    `json:"domain"`
 	Ip       string    `json:"addr"`
 	Ctime    time.Time `json:"ctime"`
+	Username string    `json:"username"`
+	Company  string    `json:"company"`
+	FullName string	   `json:"full_name"`
 }
 
 type HttpRecord struct {
@@ -136,6 +150,9 @@ type HttpRecord struct {
 	Ctype    string    `json:"ctype"`
 	Ua       string    `json:"ua"`
 	Ctime    time.Time `json:"ctime"`
+	Username string    `json:"username"`
+	Company  string    `json:"company"`
+	FullName string	   `json:"full_name"`
 }
 
 // commone response

@@ -12,7 +12,7 @@ export const asyncRouterMap = [
     name: 'index',
     component: BasicLayout,
     meta: { title: 'menu.home' },
-    redirect: '/document/introduce',
+    redirect: '/record/dns',
     children: [
       // document
       // {
@@ -145,7 +145,7 @@ export const asyncRouterMap = [
       {
         path: '/setting',
         component: RouteView,
-        redirect: '/setting/system/base',
+        redirect: '/setting/system/security',
         name: 'Setting',
         meta: { title: 'menu.setting', icon: 'setting', keepAlive: true, permission: [ 'setting' ] },
         children: [
@@ -154,15 +154,15 @@ export const asyncRouterMap = [
             name: 'SettingSystem',
             component: () => import('@/views/account/settings/Index'),
             meta: { title: 'menu.setting.system', hideHeader: true, permission: [ 'setting' ] },
-            redirect: '/setting/system/base',
+            redirect: '/setting/system/security',
             hideChildrenInMenu: true,
             children: [
-              {
-                path: '/setting/system/base',
-                name: 'BaseSetting',
-                component: () => import('@/views/account/settings/BaseSetting'),
-                meta: { title: 'menu.setting.system.base', hidden: true, permission: [ 'setting' ] }
-              },
+              // {
+              //   path: '/setting/system/base',
+              //   name: 'BaseSetting',
+              //   component: () => import('@/views/account/settings/BaseSetting'),
+              //   meta: { title: 'menu.setting.system.base', hidden: true, permission: [ 'setting' ] }
+              // },
               {
                 path: '/setting/system/security',
                 name: 'SecuritySetting',
@@ -182,6 +182,39 @@ export const asyncRouterMap = [
               name: 'ResolveSetting',
               component: () => import('@/views/account/resolve/Index'),
               meta: { title: 'menu.setting.resolve', hideHeader: true, permission: [ 'manage' ] }
+          }
+        ]
+      },
+      // allrecord
+      {
+        path: '/allrecord',
+        name: 'AllRecord',
+        component: RouteView,
+        meta: { title: 'menu.allrecord', icon: 'form', permission: [ 'manage' ] },
+        redirect: '/allrecord/dns',
+        children: [
+          // dashboard
+          {
+            path: '/allrecord/dns',
+            name: 'DnsAllRecord',
+            component: () => import('@/views/allrecord/Dns'),
+            meta: {
+              title: 'menu.allrecord.dns',
+              keepAlive: true,
+              permission: ['manage']
+            }
+          },
+          {
+            path: '/allrecord/http',
+            name: 'HttpAllRecord',
+            component: () => import('@/views/allrecord/Http'),
+            meta: { title: 'menu.allrecord.http', keepAlive: true, permission: ['manage'] }
+          },
+          {
+            path: '/allrecord/count',
+            name: 'CountAllRecord',
+            component: () => import('@/views/allrecord/Count'),
+            meta: { title: 'menu.allrecord.count', keepAlive: true, permission: ['manage'] }
           }
         ]
       }

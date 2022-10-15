@@ -23,7 +23,7 @@ export default {
   menu: {
     locale: true
   },
-  title: 'go 4 hacker server',
+  title: '360漏洞云DNSLog平台',
   pwa: false,
   iconfontUrl: '',
   production: process.env.NODE_ENV === 'production' && process.env.VUE_APP_PREVIEW !== 'true'

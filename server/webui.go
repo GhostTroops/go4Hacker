@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"fmt"
 	"sort"
 	"strings"
@@ -9,10 +10,13 @@ import (
 	"github.com/hktalent/go4Hacker/cache"
 	"github.com/hktalent/go4Hacker/models"
 
+	"github.com/chennqqi/goutils/ginutils"
+	"github.com/dchest/captcha"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
-	"github.com/hktalent/goutils/ginutils"
 	"github.com/sirupsen/logrus"
+	"net/http"
+	// "xorm.io/builder"
 )
 
 type MyClaims struct {
@@ -63,7 +67,9 @@ func (self *WebServer) initDatabase() error {
 			randomPass := genRandomString(12)
 			_, err = orm.InsertOne(&models.TblUser{
 				Name:          "admin",
-				Email:         "admin@godnslog.com",
+				Email:         "admin@dnslog.com",
+				Company:       self.WebServerConfig.Author,
+				FullName:      "admin",
 				ShortId:       genShortId(),
 				Pass:          makePassword(randomPass),
 				Token:         genRandomToken(),
@@ -90,6 +96,8 @@ func (self *WebServer) initDatabase() error {
 			guestUser.Name = "guest"
 			guestUser.Email = "guest@godnslog.com"
 			guestUser.Pass = makePassword("guest123")
+			guestUser.Company = "guest"
+			guestUser.FullName = "guest"
 			guestUser.Token = genRandomToken()
 			guestUser.Role = roleGuest
 			guestUser.Lang = self.DefaultLanguage
@@ -281,6 +289,15 @@ func (self *WebServer) userLogin(c *gin.Context) {
 		})
 		return
 	}
+
+	if !captcha.VerifyString(req.CaptchaId, req.Verifycode) {
+		self.resp(c, 400, &CR{
+			Code:    VerifycodeErr,
+			Message: T("验证码错误"),
+		})
+		return
+	}
+
 	session := self.orm.NewSession()
 	defer session.Close()
 	var user = new(models.TblUser)
@@ -334,6 +351,48 @@ func (self *WebServer) userLogin(c *gin.Context) {
 			Islogin: true,
 			Token:   tokenString,
 		},
+	})
+}
+
+func Serve(w http.ResponseWriter, r *http.Request, id, ext, lang string, download bool, width, height int) error {
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
+
+	var content bytes.Buffer
+	switch ext {
+	case ".png":
+		w.Header().Set("Content-Type", "image/png")
+		_ = captcha.WriteImage(&content, id, width, height)
+	case ".wav":
+		w.Header().Set("Content-Type", "audio/x-wav")
+		_ = captcha.WriteAudio(&content, id, lang)
+	default:
+		return captcha.ErrNotFound
+	}
+
+	if download {
+		w.Header().Set("Content-Type", "application/octet-stream")
+	}
+	http.ServeContent(w, r, id+ext, time.Time{}, bytes.NewReader(content.Bytes()))
+	return nil
+}
+
+func (self *WebServer) getCaptchaImg(c *gin.Context) {
+	captchaId := c.Param("captchaId")
+	captchaId = strings.Replace(captchaId, "/", "", 1)
+	w, h := 100, 40
+	_ = Serve(c.Writer, c.Request, captchaId, ".png", "zh", false, w, h)
+}
+
+func (self *WebServer) getCaptcha(c *gin.Context) {
+	T := getTranslateFunc(c)
+	captchaId := captcha.NewLen(4)
+
+	self.resp(c, 200, &CR{
+		Message: T("OK"),
+		Code:    CodeOK,
+		Result:  captchaId,
 	})
 }
 
@@ -463,10 +522,12 @@ func (self *WebServer) userInfo(c *gin.Context) {
 		Message: T("OK"),
 		Code:    CodeOK,
 		Result: UserInfo{
-			Id:    user.Id,
-			Name:  user.Name,
-			Email: user.Email,
-			Role:  parseRole(user.Role),
+			Id:       user.Id,
+			Name:     user.Name,
+			FullName: user.FullName,
+			Company:  user.Company,
+			Email:    user.Email,
+			Role:     parseRole(user.Role),
 		},
 	})
 }
@@ -518,7 +579,10 @@ func (self *WebServer) userList(c *gin.Context) {
 		item := &items[i]
 		rcd.Id = item.Id
 		rcd.Name = item.Name
+		rcd.ShortId = item.ShortId
 		rcd.Email = item.Email
+		rcd.Company = item.Company
+		rcd.FullName = item.FullName
 		rcd.Utime = item.Utime
 		rcd.Role = parseRole(item.Role)
 	}
@@ -526,6 +590,35 @@ func (self *WebServer) userList(c *gin.Context) {
 	self.resp(c, 200, &CR{
 		Message: T("OK"),
 		Result:  &resp,
+	})
+}
+
+func (self *WebServer) allUserNameList(c *gin.Context) {
+	T := getTranslateFunc(c)
+	session := self.orm.NewSession()
+	defer session.Close()
+
+	session = session.Where(`id>0`)
+	var items []models.TblUser
+	err := session.Find(&items)
+	if err != nil {
+		self.resp(c, 502, &CR{
+			Code:    CodeServerInternal,
+			Message: T("Failed"),
+		})
+		return
+	}
+
+	var allUsers = make([]string, len(items))
+
+	for i := 0; i < len(items); i++ {
+		item := &items[i]
+		allUsers[i] = item.Name
+	}
+
+	self.resp(c, 200, &CR{
+		Message: T("OK"),
+		Result:  allUsers,
 	})
 }
 
@@ -577,6 +670,17 @@ func (self *WebServer) delUser(c *gin.Context) {
 	session := self.orm.NewSession()
 	defer session.Close()
 
+	var users []*models.TblUser
+	err = session.In("id", ids...).Find(&users)
+	if err != nil {
+		logrus.Errorf("[webapi.go::delUser] orm.Find: %v", err)
+		self.resp(c, 502, &CR{
+			Message: T("failed"),
+			Code:    CodeServerInternal,
+		})
+		return
+	}
+
 	//do not delete super user
 	_, err = session.In("id", ids...).Delete(&models.TblUser{})
 	if err != nil {
@@ -591,14 +695,20 @@ func (self *WebServer) delUser(c *gin.Context) {
 	session.In("uid", ids).Delete(&models.TblHttp{})
 
 	cache := self.store
+
+	for _, user := range users {
+		domainKey := fmt.Sprintf("%v.suser", user.ShortId)
+		cache.Delete(domainKey)
+	}
+
 	for i := 0; i < len(req.Ids); i++ {
 		seedKey := fmt.Sprintf("%v.seed", req.Ids[i])
 		userKey := fmt.Sprintf("%v.user", req.Ids[i])
-		v, exist := cache.Get(userKey)
-		if exist {
-			domainKey := fmt.Sprintf("%v.suser", v.(*models.TblUser).ShortId)
-			cache.Delete(domainKey)
-		}
+		// v, exist := cache.Get(userKey)
+		// if exist {
+		// 	domainKey := fmt.Sprintf("%v.suser", v.(*models.TblUser).ShortId)
+		// 	cache.Delete(domainKey)
+		// }
 
 		//logout these users
 		cache.Delete(seedKey)
@@ -650,10 +760,12 @@ func (self *WebServer) addUser(c *gin.Context) {
 
 	var item = models.TblUser{
 		Name:          req.Name,
+		FullName:      req.FullName,
 		Email:         req.Email,
+		Company:       req.Company,
 		Role:          req.Role,
 		Token:         genRandomToken(),
-		ShortId:       genShortId(),
+		ShortId:       req.ShortId,
 		Lang:          self.DefaultLanguage,
 		Pass:          makePassword(req.Password),
 		CleanInterval: self.DefaultCleanInterval,
@@ -672,9 +784,31 @@ func (self *WebServer) addUser(c *gin.Context) {
 		})
 		return
 	}
+
+	store := self.store
+	domainKey := fmt.Sprintf("%v.suser", item.ShortId)
+	store.Set(domainKey, &item, cache.NoExpiration)
+
 	self.resp(c, 200, &CR{
 		Message: T("OK"),
 	})
+}
+
+func (self *WebServer) getUserById(id int64) *models.TblUser {
+	session := self.orm.NewSession()
+	defer session.Close()
+
+	var user *models.TblUser
+	user = new(models.TblUser)
+	exist, err := session.ID(id).Get(user)
+	if err != nil {
+		sql, _ := session.LastSQL()
+		logrus.Errorf("[webapi.go::setUser] orm.Get error: %v, sql:%v", err, sql)
+		return nil
+	} else if !exist {
+		return nil
+	}
+	return user
 }
 
 func (self *WebServer) setUser(c *gin.Context) {
@@ -709,6 +843,8 @@ func (self *WebServer) setUser(c *gin.Context) {
 	switch role {
 	case roleSuper, roleAdmin:
 		//change other user
+		var oldUser *models.TblUser
+
 		session = session.ID(req.Id)
 		if req.Password != "" {
 			newPass := makePassword(req.Password)
@@ -719,6 +855,19 @@ func (self *WebServer) setUser(c *gin.Context) {
 		}
 		if req.Name != "" {
 			session = session.SetExpr(`name`, customQuote(req.Name))
+		}
+
+		if req.Company != "" {
+			session = session.SetExpr(`company`, customQuote(req.Company))
+		}
+
+		if req.FullName != "" {
+			session = session.SetExpr(`full_name`, customQuote(req.FullName))
+		}
+
+		if req.ShortId != "" {
+			oldUser = self.getUserById(req.Id)
+			session = session.SetExpr(`short_id`, customQuote(req.ShortId))
 		}
 
 		_, err = session.Update(&models.TblUser{})
@@ -733,9 +882,19 @@ func (self *WebServer) setUser(c *gin.Context) {
 		}
 
 		//logout req.Id
-		cache := self.store
-		cache.Delete(fmt.Sprintf("%v.seed", req.Id))
-		cache.Delete(fmt.Sprintf("%v.user", req.Id))
+		// cache := self.store
+		if req.ShortId != "" {
+			//更新domainKey
+			if oldUser != nil {
+				oldDomainKey := fmt.Sprintf("%v.suser", oldUser.ShortId)
+				store.Delete(oldDomainKey)
+			}
+			newUser := self.getUserById(req.Id)
+			newDomainKey := fmt.Sprintf("%v.suser", newUser.ShortId)
+			store.Set(newDomainKey, newUser, cache.NoExpiration)
+		}
+		store.Delete(fmt.Sprintf("%v.seed", req.Id))
+		store.Delete(fmt.Sprintf("%v.user", req.Id))
 		self.resp(c, 200, &CR{
 			Message: T("OK"),
 		})
@@ -1054,6 +1213,8 @@ func (self *WebServer) getDnsRecord(c *gin.Context) {
 		// fmt.Println("QUERYDATE=[", date, "] = ", t)
 	}
 
+	session = session.And(`hidden=false`)
+
 	var items []models.TblDns
 	count, err := session.Desc("id").Limit(pageSize, (pageNo-1)*pageSize).FindAndCount(&items)
 	if err != nil {
@@ -1109,6 +1270,9 @@ func (self *WebServer) delDnsRecord(c *gin.Context) {
 		return
 	}
 
+	var newDns models.TblDns
+	newDns.Hidden = true
+
 	session := self.orm.NewSession()
 	defer session.Close()
 
@@ -1118,7 +1282,7 @@ func (self *WebServer) delDnsRecord(c *gin.Context) {
 	switch role {
 	case roleAdmin, roleSuper:
 		if len(req.Ids) == 0 {
-			_, err := session.In(`uid`, id, 0).Delete(&models.TblDns{})
+			_, err := session.In(`uid`, id, 0).Cols("hidden").Update(&newDns)
 			if err != nil {
 				logrus.Errorf("[webui.go::delDnsRecord] orm.Delete: %v", err)
 				self.resp(c, 502, &CR{
@@ -1136,7 +1300,7 @@ func (self *WebServer) delDnsRecord(c *gin.Context) {
 			for i := 0; i < len(req.Ids); i++ {
 				params[i] = req.Ids[i]
 			}
-			_, err := session.In(`uid`, id, 0).In("id", params...).Delete(&models.TblDns{})
+			_, err := session.In(`uid`, id, 0).In("id", params...).Cols("hidden").Update(&newDns)
 			if err != nil {
 				logrus.Errorf("[webui.go::delDnsRecord] orm.Delete: %v", err)
 				self.resp(c, 502, &CR{
@@ -1152,7 +1316,7 @@ func (self *WebServer) delDnsRecord(c *gin.Context) {
 		}
 	default:
 		if len(req.Ids) == 0 {
-			_, err := session.Where(`uid=?`, id).Delete(&models.TblDns{})
+			_, err := session.Where(`uid=?`, id).Cols("hidden").Update(&newDns)
 			if err != nil {
 				logrus.Errorf("[webui.go::delDnsRecord] orm.Delete: %v", err)
 				self.resp(c, 502, &CR{
@@ -1170,7 +1334,7 @@ func (self *WebServer) delDnsRecord(c *gin.Context) {
 			for i := 0; i < len(req.Ids); i++ {
 				params[i] = req.Ids[i]
 			}
-			_, err := session.Where(`uid=?`, id).In("id", params...).Delete(&models.TblDns{})
+			_, err := session.Where(`uid=?`, id).In("id", params...).Cols("hidden").Update(&newDns)
 			if err != nil {
 				logrus.Errorf("[webui.go::delDnsRecord] orm.Delete: %v", err)
 				self.resp(c, 502, &CR{
@@ -1241,6 +1405,8 @@ func (self *WebServer) getHttpRecord(c *gin.Context) {
 		session = session.And(`method = ?`, method)
 	}
 
+	session = session.And(`hidden=false`)
+
 	var items []models.TblHttp
 	count, err := session.Desc("id").Limit(pageSize, (pageNo-1)*pageSize).FindAndCount(&items)
 	if err != nil {
@@ -1291,6 +1457,9 @@ func (self *WebServer) delHttpRecord(c *gin.Context) {
 		return
 	}
 
+	var newHttp models.TblHttp
+	newHttp.Hidden = true
+
 	session := self.orm.NewSession()
 	defer session.Close()
 
@@ -1300,7 +1469,7 @@ func (self *WebServer) delHttpRecord(c *gin.Context) {
 	switch role {
 	case roleAdmin, roleSuper:
 		if len(req.Ids) == 0 {
-			_, err := session.In(`uid`, id, 0).Delete(&models.TblHttp{})
+			_, err := session.In(`uid`, id, 0).Cols("hidden").Update(&newHttp)
 			if err != nil {
 				//TODO:
 				logrus.Errorf("[webui.go::delHttpRecord] orm.Delete: %v", err)
@@ -1319,7 +1488,7 @@ func (self *WebServer) delHttpRecord(c *gin.Context) {
 			for i := 0; i < len(req.Ids); i++ {
 				params[i] = req.Ids[i]
 			}
-			_, err := session.In(`uid`, id, 0).In("id", params...).Delete(&models.TblHttp{})
+			_, err := session.In(`uid`, id, 0).In("id", params...).Cols("hidden").Update(&newHttp)
 			if err != nil {
 				logrus.Errorf("[webui.go::delHttpRecord] orm.Delete: %v", err)
 				self.resp(c, 502, &CR{
@@ -1335,7 +1504,7 @@ func (self *WebServer) delHttpRecord(c *gin.Context) {
 		}
 	default:
 		if len(req.Ids) == 0 {
-			_, err := session.Where(`uid=?`, id).Delete(&models.TblHttp{})
+			_, err := session.Where(`uid=?`, id).Cols("hidden").Update(&newHttp)
 			if err != nil {
 				//TODO:
 				logrus.Errorf("[webui.go::delHttpRecord] orm.Delete: %v", err)
@@ -1354,7 +1523,7 @@ func (self *WebServer) delHttpRecord(c *gin.Context) {
 			for i := 0; i < len(req.Ids); i++ {
 				params[i] = req.Ids[i]
 			}
-			_, err := session.Where(`uid=?`, id).In("id", params...).Delete(&models.TblHttp{})
+			_, err := session.Where(`uid=?`, id).In("id", params...).Cols("hidden").Update(&newHttp)
 			if err != nil {
 				logrus.Errorf("[webui.go::delHttpRecord] orm.Delete: %v", err)
 				self.resp(c, 502, &CR{
@@ -1369,6 +1538,427 @@ func (self *WebServer) delHttpRecord(c *gin.Context) {
 			return
 		}
 	}
+}
+
+func (self *WebServer) getDnsAllRecord(c *gin.Context) {
+	T := getTranslateFunc(c)
+	user, userExist := c.GetQuery("user")
+	ip, ipExist := c.GetQuery("ip")
+	domain, domainExist := c.GetQuery("domain")
+	startTime, startTimeExist := c.GetQuery("startTime")
+	endTime, endTimeExist := c.GetQuery("endTime")
+
+	pageNo, pageNoErr := ginutils.GetQueryInt(c, "pageNo")
+	if pageNoErr != nil || pageNo <= 0 {
+		pageNo = 1
+	}
+	pageSize, pageSizeErr := ginutils.GetQueryInt(c, "pageSize")
+	if pageSizeErr != nil {
+		pageSize = 10
+	}
+
+	session := self.orm.NewSession()
+	defer session.Close()
+
+	session = session.Table("tbl_user").Join("INNER", "tbl_dns", "tbl_user.id=tbl_dns.uid")
+
+	if !userExist || "ALL" == user {
+		// session = session.Where(`uid>0`)
+		session = session.Where("tbl_user.id>0")
+	} else {
+		// session = session.Where(builder.Eq{
+		// 	"uid": builder.Select("id").Where(builder.Eq{"name":user}).From("tbl_user"),
+		// })
+		session = session.Where(`tbl_user.name = ?`, user)
+	}
+
+	if domainExist {
+		session = session.And(`tbl_dns.domain like ?`, "%"+domain+"%")
+	}
+	if ipExist {
+		session = session.And(`tbl_dns.ip like ?`, "%"+ip+"%")
+	}
+	if startTimeExist {
+		t, _ := time.Parse(time.RFC3339, strings.Trim(startTime, `"`))
+		if self.orm.DriverName() == "sqlite3" { //sqlite not support timezone
+			t = t.Local()
+		}
+		session = session.And(`tbl_dns.ctime > ?`, t)
+		// fmt.Println("QUERYDATE=[", date, "] = ", t)
+	}
+
+	if endTimeExist {
+		t, _ := time.Parse(time.RFC3339, strings.Trim(endTime, `"`))
+		if self.orm.DriverName() == "sqlite3" { //sqlite not support timezone
+			t = t.Local()
+		}
+		session = session.And(`tbl_dns.ctime < ?`, t)
+		// fmt.Println("QUERYDATE=[", date, "] = ", t)
+	}
+
+	type UserDns struct {
+		models.TblDns  `xorm:"extends"`
+		models.TblUser `xorm:"extends"`
+	}
+
+	var items []UserDns
+	count, err := session.Desc("tbl_dns.id").Limit(pageSize, (pageNo-1)*pageSize).FindAndCount(&items)
+	if err != nil {
+		logrus.Errorf("[webui.go::getDnsAllRecord] orm.FindAndCount: %v", err)
+		self.resp(c, 502, &CR{
+			Message: T("Failed"),
+			Code:    CodeServerInternal,
+		})
+		return
+	}
+
+	// logrus.Errorf("getDnsAllRecord:-----: %v", count)
+
+	var resp DnsRecordResp
+	resp.TotalCount = int(count)
+	resp.PageSize = pageSize
+	resp.PageNo = pageNo
+	resp.TotalPage = (resp.TotalCount + (pageSize - 1)) / pageSize
+	resp.Data = make([]models.DnsRecord, len(items))
+	for i := 0; i < len(items); i++ {
+		rcd := &resp.Data[i]
+		item := &items[i]
+		rcd.Id = item.TblDns.Id
+		rcd.Domain = item.TblDns.Domain
+		rcd.Ip = item.TblDns.Ip
+		rcd.Ctime = item.TblDns.Ctime
+		rcd.Username = item.TblUser.Name
+		rcd.Company = item.TblUser.Company
+		rcd.FullName = item.TblUser.FullName
+	}
+
+	self.resp(c, 200, &CR{
+		Message: T("OK"),
+		Result:  &resp,
+	})
+}
+
+func (self *WebServer) delAllDnsRecord(c *gin.Context) {
+	T := getTranslateFunc(c)
+	var req DeleteRecordRequest
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		logrus.Errorf("[webui.go::delAllDnsRecord] orm.Delete: %v", err)
+		self.resp(c, 400, &CR{
+			Message: T("invalid Param"),
+			Code:    CodeServerInternal,
+			Error:   err,
+		})
+		return
+	}
+
+	session := self.orm.NewSession()
+	defer session.Close()
+
+	if len(req.Ids) == 0 {
+		_, err := session.Where(`uid>0`).Delete(&models.TblDns{})
+		if err != nil {
+			logrus.Errorf("[webui.go::delAllDnsRecord] orm.Delete: %v", err)
+			self.resp(c, 502, &CR{
+				Message: T("Failed"),
+				Code:    CodeServerInternal,
+			})
+			return
+		}
+		self.resp(c, 200, &CR{
+			Message: T("OK"),
+		})
+		return
+	} else {
+		params := make([]interface{}, len(req.Ids))
+		for i := 0; i < len(req.Ids); i++ {
+			params[i] = req.Ids[i]
+		}
+		_, err := session.Where(`uid>0`).In("id", params...).Delete(&models.TblDns{})
+		if err != nil {
+			logrus.Errorf("[webui.go::delAllDnsRecord] orm.Delete: %v", err)
+			self.resp(c, 502, &CR{
+				Message: T("Failed"),
+				Code:    CodeServerInternal,
+			})
+			return
+		}
+		self.resp(c, 200, &CR{
+			Message: T("OK"),
+		})
+		return
+	}
+
+}
+
+func (self *WebServer) getAllHttpRecord(c *gin.Context) {
+	T := getTranslateFunc(c)
+	user, userExist := c.GetQuery("user")
+	ip, ipExist := c.GetQuery("ip")
+	domain, domainExist := c.GetQuery("domain")
+	startTime, startTimeExist := c.GetQuery("startTime")
+	endTime, endTimeExist := c.GetQuery("endTime")
+
+	pageNo, pageNoErr := ginutils.GetQueryInt(c, "pageNo")
+	if pageNoErr != nil || pageNo <= 0 {
+		pageNo = 1
+	}
+	pageSize, pageSizeErr := ginutils.GetQueryInt(c, "pageSize")
+	if pageSizeErr != nil || pageSize <= 0 {
+		pageSize = 10
+	}
+
+	ctype, ctypeExist := c.GetQuery("ctype")
+	data, dataExist := c.GetQuery("data")
+	method, methodExist := c.GetQuery("method")
+
+	session := self.orm.NewSession()
+	defer session.Close()
+
+	session = session.Table("tbl_user").Join("INNER", "tbl_http", "tbl_user.id=tbl_http.uid")
+
+	if !userExist || "ALL" == user {
+		// session = session.Where(`uid>0`)
+		session = session.Where("tbl_user.id>0")
+	} else {
+		// session = session.Where(builder.Eq{
+		// 	"uid": builder.Select("id").Where(builder.Eq{"name":user}).From("tbl_user"),
+		// })
+		session = session.Where(`tbl_user.name = ?`, user)
+	}
+
+	if domainExist {
+		session = session.And(`tbl_http.domain like ?`, "%"+domain+"%")
+	}
+	if ipExist {
+		session = session.And(`tbl_http.ip like ?`, "%"+ip+"%")
+	}
+	if startTimeExist {
+		t, _ := time.Parse(time.RFC3339, strings.Trim(startTime, `"`))
+		if self.orm.DriverName() == "sqlite3" { //sqlite不支持时区
+			t = t.Local()
+		}
+		session = session.And(`tbl_http.ctime > ?`, t)
+	}
+
+	if endTimeExist {
+		t, _ := time.Parse(time.RFC3339, strings.Trim(endTime, `"`))
+		if self.orm.DriverName() == "sqlite3" { //sqlite不支持时区
+			t = t.Local()
+		}
+		session = session.And(`tbl_http.ctime < ?`, t)
+	}
+
+	if ctypeExist {
+		session = session.And(`tbl_http.ctype like ?`, "%"+ctype+"%")
+	}
+	if dataExist {
+		session = session.And(`tbl_http.data like ?`, "%"+data+"%")
+	}
+	if methodExist {
+		session = session.And(`tbl_http.method = ?`, method)
+	}
+
+	type UserHttp struct {
+		models.TblHttp `xorm:"extends"`
+		models.TblUser `xorm:"extends"`
+	}
+
+	var items []UserHttp
+	count, err := session.Desc("tbl_http.id").Limit(pageSize, (pageNo-1)*pageSize).FindAndCount(&items)
+	if err != nil {
+		logrus.Errorf("[webui.go::getAllHttpRecord] orm.FindAndCount: %v", err)
+		self.resp(c, 502, &CR{
+			Code:    CodeServerInternal,
+			Message: T("Failed"),
+		})
+		return
+	}
+
+	var resp HttpRecordResp
+	resp.TotalCount = int(count)
+	resp.PageSize = pageSize
+	resp.PageNo = pageNo
+	resp.TotalPage = (resp.TotalCount + (pageSize - 1)) / pageSize
+	resp.Data = make([]models.HttpRecord, len(items))
+
+	for i := 0; i < len(items); i++ {
+		rcd := &resp.Data[i]
+		item := &items[i]
+		rcd.Id = item.TblHttp.Id
+		rcd.Path = item.TblHttp.Path
+		rcd.Ip = item.TblHttp.Ip
+		rcd.Ctime = item.TblHttp.Ctime
+		rcd.Ctype = item.TblHttp.Ctype
+		rcd.Data = item.TblHttp.Data
+		rcd.Method = item.TblHttp.Method
+		rcd.Ua = item.TblHttp.Ua
+		rcd.Username = item.TblUser.Name
+		rcd.Company = item.TblUser.Company
+		rcd.FullName = item.TblUser.FullName
+	}
+	self.resp(c, 200, &CR{
+		Message: T("OK"),
+		Result:  &resp,
+	})
+}
+
+func (self *WebServer) delAllHttpRecord(c *gin.Context) {
+	T := getTranslateFunc(c)
+	var req DeleteRecordRequest
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		logrus.Errorf("[webui.go::delAllHttpRecord] orm.Delete: %v", err)
+		self.resp(c, 400, &CR{
+			Message: T(`invalid Param`),
+			Code:    CodeServerInternal,
+			Error:   err,
+		})
+		return
+	}
+
+	session := self.orm.NewSession()
+	defer session.Close()
+
+	if len(req.Ids) == 0 {
+		_, err := session.Where(`uid>0`).Delete(&models.TblHttp{})
+		if err != nil {
+			//TODO:
+			logrus.Errorf("[webui.go::delAllHttpRecord] orm.Delete: %v", err)
+			self.resp(c, 502, &CR{
+				Message: fmt.Sprintf(T("Delete Record: %v"), err),
+				Code:    CodeServerInternal,
+			})
+			return
+		}
+		self.resp(c, 200, &CR{
+			Message: T("OK"),
+		})
+		return
+	} else {
+		params := make([]interface{}, len(req.Ids))
+		for i := 0; i < len(req.Ids); i++ {
+			params[i] = req.Ids[i]
+		}
+		_, err := session.Where(`uid>0`).In("id", params...).Delete(&models.TblHttp{})
+		if err != nil {
+			logrus.Errorf("[webui.go::delAllHttpRecord] orm.Delete: %v", err)
+			self.resp(c, 502, &CR{
+				Message: T("Failed"),
+				Code:    CodeServerInternal,
+			})
+			return
+		}
+		self.resp(c, 200, &CR{
+			Message: T("OK"),
+		})
+		return
+	}
+}
+
+type countRecordResult struct {
+	Count int64 `xorm:"count"`
+	Uid   int64 `xorm:"uid"`
+}
+
+func (self *WebServer) countRecord(recordType string) map[int64]int64 {
+	sessionCount := self.orm.NewSession()
+
+	item := &countRecordResult{}
+
+	var sql string
+	if recordType == "DNS" {
+		sql = "select `uid`,count(*) as count from tbl_dns group by `uid`"
+	} else {
+		sql = "select `uid`,count(*) as count from tbl_http group by `uid`"
+	}
+
+	items, err := sessionCount.SQL(sql).Rows(item)
+	defer items.Close()
+
+	if err != nil {
+		logrus.Errorf("err:", err.Error())
+	}
+
+	var result map[int64]int64
+
+	result = make(map[int64]int64)
+
+	for items.Next() {
+		err := items.Scan(item)
+		if err != nil {
+			logrus.Errorf("err:", err.Error())
+		} else {
+			result[item.Uid] = item.Count
+		}
+	}
+
+	return result
+}
+
+func (self *WebServer) countAllRecord(c *gin.Context) {
+	T := getTranslateFunc(c)
+
+	pageNo, pageNoErr := ginutils.GetQueryInt(c, "pageNo")
+	if pageNoErr != nil || pageNo <= 0 {
+		pageNo = 1
+	}
+	pageSize, pageSizeErr := ginutils.GetQueryInt(c, "pageSize")
+	if pageSizeErr != nil {
+		pageSize = 10
+	}
+
+	session := self.orm.NewSession()
+	defer session.Close()
+
+	session = session.Where(`id>0`)
+	var items []models.TblUser
+	count, err := session.Limit(pageSize, (pageNo-1)*pageSize).FindAndCount(&items)
+	if err != nil {
+		self.resp(c, 502, &CR{
+			Code:    CodeServerInternal,
+			Message: T("Failed"),
+		})
+		return
+	}
+
+	countDnsItem := self.countRecord("DNS")
+	countHttpItem := self.countRecord("HTTP")
+
+	var resp UserListResp
+	resp.TotalCount = int(count)
+	resp.PageSize = pageSize
+	resp.PageNo = pageNo
+	resp.TotalPage = (resp.TotalCount + (pageSize - 1)) / pageSize
+	resp.Data = make([]models.UserInfo, len(items))
+	for i := 0; i < len(items); i++ {
+		rcd := &resp.Data[i]
+		item := &items[i]
+		rcd.Id = item.Id
+		rcd.Name = item.Name
+		rcd.ShortId = item.ShortId
+		rcd.Email = item.Email
+		rcd.Company = item.Company
+		rcd.FullName = item.FullName
+		rcd.Utime = item.Utime
+		rcd.Role = parseRole(item.Role)
+		if value, ok := countDnsItem[item.Id]; ok {
+			rcd.DnsCount = value
+		} else {
+			rcd.DnsCount = 0
+		}
+
+		if value, ok := countHttpItem[item.Id]; ok {
+			rcd.HttpCount = value
+		} else {
+			rcd.HttpCount = 0
+		}
+	}
+
+	self.resp(c, 200, &CR{
+		Message: T("OK"),
+		Result:  &resp,
+	})
 }
 
 // POST

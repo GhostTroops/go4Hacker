@@ -7,7 +7,7 @@ package server
 
 // @contact.name API Support
 // @contact.url https://github.com/hktalent/go4Hacker/issue
-// @contact.email 51pwn@51pwn.com
+// @contact.email chennqqi@qq.com
 
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html

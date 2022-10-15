@@ -7,7 +7,6 @@
     :isMobile="isMobile"
     :handleMediaQuery="handleMediaQuery"
     :handleCollapse="handleCollapse"
-    :logo="logoRender"
     :i18nRender="i18nRender"
     v-bind="settings"
   >
@@ -32,8 +31,8 @@ import { CONTENT_WIDTH_TYPE, SIDEBAR_TYPE, TOGGLE_MOBILE_TYPE } from '@/store/mu
 import defaultSettings from '@/config/defaultSettings'
 import RightContent from '@/components/GlobalHeader/RightContent'
 import GlobalFooter from '@/components/GlobalFooter'
-// import LogoSvg from '../assets/logo.svg?inline'
-import LogoSvg from '../assets/banner.svg?inline'
+import LogoSvg from '../assets/logo.svg?inline'
+// import LogoSvg from '../assets/banner.svg?inline'
 
 // const links = [
 //   {
@@ -166,7 +165,7 @@ export default {
       }
     },
     logoRender () {
-      return <LogoSvg class="banner"/>
+      return <LogoSvg class="logo"/>
     }
   }
 }
@@ -181,6 +180,7 @@ export default {
     height: 110px;
     top: -22px;
     left: -15px;
+    display:none;
   }
 
 </style>

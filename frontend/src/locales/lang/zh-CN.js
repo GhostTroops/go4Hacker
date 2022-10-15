@@ -26,6 +26,9 @@ const locale = {
   'menu.setting.system': '系统',
   'menu.setting.user': '用户',
 
+  'layouts.usermenu.dialog.title': 'Message',
+  'layouts.usermenu.dialog.content': '是否确定退出',
+
   'menu.record': '记录',
   'menu.record.dns': 'dns',
   'menu.record.http': 'http',
@@ -34,12 +37,19 @@ const locale = {
   'menu.document.history': '历史',
   'menu.document.resolve': '解析',
 
+  'menu.allrecord': '所有记录',
+  'menu.allrecord.dns': 'dns',
+  'menu.allrecord.http': 'http',
+  'menu.allrecord.count': '统计',
+
   // setting.system
   'setting.system.base.callback': '回调地址',
   'setting.system.base.cleanInterval(hour)': '清理周期(小时)',
   'setting.system.base.unit.day': '天',
   'setting.system.base.unit.hour': '小时',
   'setting.system.base.rebind': '域名重绑定',
+
+  'User': '用户',
 
   'DNS Addr': 'DNS地址',
   'HTTP Addr': 'HTTP地址',
@@ -59,6 +69,11 @@ const locale = {
   'Batch': '批量操作',
   'Username': '用户名',
   'UpdateTime': '更新时间',
+  'StartTime': '开始时间',
+  'EndTime': '结束时间',
+  'Company': '公司',
+  'FullName': '姓名',
+  'ShortId': '域名',
   'Edit': '编辑',
   'Back': '返回',
   'Delete': '删除',
@@ -83,6 +98,7 @@ const locale = {
   'Action': '操作',
   'logout': '登出',
   'account': '账户',
+  'VerifyCode': '验证码',
   'Submit': '提交',
   'password': '密码',
   'Please input a valid account or email': '请输入帐户名或邮箱地址',

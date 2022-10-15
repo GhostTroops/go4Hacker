@@ -42,14 +42,16 @@ var (
 type TblUser struct {
 	Id      int64  `xorm:"pk autoincr"`
 	Name    string `xorm:"varchar(64) notnull unique"`
+	FullName string `xorm:"varchar(64) notnull"`
 	Email   string `xorm:"varchar(64) notnull unique"`
+	Company string `xorm:"varchar(64) notnull"`
 	Role    int    `xorm:"tinyint notnull default 0"`
 	ShortId string `xorm:"varchar(32) notnull unique"`
 	Token   string `xorm:"varchar(128) notnull unique"`
 	Pass    string `xorm:"varchar(128) notnull"`
 
 	//settings
-	Lang            string   `xorm:"varchar(16) default('en-US') notnull"`
+	Lang            string   `xorm:"varchar(16) default('zh-CN') notnull"`
 	Callback        string   `xorm:"text"`
 	CallbackMessage string   `xorm:"text"`
 	Rebind          []string `xorm:"json"`
@@ -67,6 +69,7 @@ type TblDns struct {
 	Ip     string    `xorm:"varchar(16) notnull"`
 	Ctime  time.Time `xorm:"datetime"`
 	Atime  time.Time `xorm:"datetime created"`
+	Hidden  bool     `xorm:"default false"`
 }
 
 type TblHttp struct {
@@ -81,6 +84,7 @@ type TblHttp struct {
 	Ua     string    `xorm:"text"`
 	Ctime  time.Time `xorm:"datetime"`
 	Atime  time.Time `xorm:"datetime created"`
+	Hidden  bool     `xorm:"default false"`
 }
 
 type TblResolve struct {
