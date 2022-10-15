@@ -179,11 +179,9 @@ func (db *mysql) Init(uri *URI) error {
 	return db.Base.Init(db, uri)
 }
 
-var (
-	mysqlColAliases = map[string]string{
-		"numeric": "decimal",
-	}
-)
+var mysqlColAliases = map[string]string{
+	"numeric": "decimal",
+}
 
 // Alias returns a alias of column
 func (db *mysql) Alias(col string) string {
@@ -243,7 +241,7 @@ func (db *mysql) Features() *DialectFeatures {
 func (db *mysql) SetParams(params map[string]string) {
 	rowFormat, ok := params["rowFormat"]
 	if ok {
-		var t = strings.ToUpper(rowFormat)
+		t := strings.ToUpper(rowFormat)
 		switch t {
 		case "COMPACT":
 			fallthrough
@@ -332,9 +330,9 @@ func (db *mysql) SQLType(c *schemas.Column) string {
 	}
 
 	if hasLen2 {
-		res += "(" + strconv.Itoa(c.Length) + "," + strconv.Itoa(c.Length2) + ")"
+		res += "(" + strconv.FormatInt(c.Length, 10) + "," + strconv.FormatInt(c.Length2, 10) + ")"
 	} else if hasLen1 {
-		res += "(" + strconv.Itoa(c.Length) + ")"
+		res += "(" + strconv.FormatInt(c.Length, 10) + ")"
 	}
 
 	if isUnsigned {
@@ -399,10 +397,10 @@ func (db *mysql) GetColumns(queryer core.Queryer, ctx context.Context, tableName
 		"(SUBSTRING_INDEX(SUBSTRING(VERSION(), 4), '.', 1) = 2 && " +
 		"SUBSTRING_INDEX(SUBSTRING(VERSION(), 6), '-', 1) >= 7)))))"
 	s := "SELECT `COLUMN_NAME`, `IS_NULLABLE`, `COLUMN_DEFAULT`, `COLUMN_TYPE`," +
-		" `COLUMN_KEY`, `EXTRA`, `COLUMN_COMMENT`, " +
+		" `COLUMN_KEY`, `EXTRA`, `COLUMN_COMMENT`, `CHARACTER_MAXIMUM_LENGTH`, " +
 		alreadyQuoted + " AS NEEDS_QUOTE " +
 		"FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_SCHEMA` = ? AND `TABLE_NAME` = ?" +
-		" ORDER BY `COLUMNS`.ORDINAL_POSITION"
+		" ORDER BY `COLUMNS`.ORDINAL_POSITION ASC"
 
 	rows, err := queryer.QueryContext(ctx, s, args...)
 	if err != nil {
@@ -418,8 +416,8 @@ func (db *mysql) GetColumns(queryer core.Queryer, ctx context.Context, tableName
 
 		var columnName, nullableStr, colType, colKey, extra, comment string
 		var alreadyQuoted, isUnsigned bool
-		var colDefault *string
-		err = rows.Scan(&columnName, &nullableStr, &colDefault, &colType, &colKey, &extra, &comment, &alreadyQuoted)
+		var colDefault, maxLength *string
+		err = rows.Scan(&columnName, &nullableStr, &colDefault, &colType, &colKey, &extra, &comment, &maxLength, &alreadyQuoted)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -446,7 +444,7 @@ func (db *mysql) GetColumns(queryer core.Queryer, ctx context.Context, tableName
 		// Remove the /* mariadb-5.3 */ suffix from coltypes
 		colName = strings.TrimSuffix(colName, "/* mariadb-5.3 */")
 		colType = strings.ToUpper(colName)
-		var len1, len2 int
+		var len1, len2 int64
 		if len(cts) == 2 {
 			idx := strings.Index(cts[1], ")")
 			if colType == schemas.Enum && cts[1][0] == '\'' { // enum
@@ -467,15 +465,23 @@ func (db *mysql) GetColumns(queryer core.Queryer, ctx context.Context, tableName
 				}
 			} else {
 				lens := strings.Split(cts[1][0:idx], ",")
-				len1, err = strconv.Atoi(strings.TrimSpace(lens[0]))
+				len1, err = strconv.ParseInt(strings.TrimSpace(lens[0]), 10, 64)
 				if err != nil {
 					return nil, nil, err
 				}
 				if len(lens) == 2 {
-					len2, err = strconv.Atoi(lens[1])
+					len2, err = strconv.ParseInt(lens[1], 10, 64)
 					if err != nil {
 						return nil, nil, err
 					}
+				}
+			}
+		} else {
+			switch colType {
+			case "MEDIUMTEXT", "LONGTEXT", "TEXT":
+				len1, err = strconv.ParseInt(*maxLength, 10, 64)
+				if err != nil {
+					return nil, nil, err
 				}
 			}
 		}
@@ -554,11 +560,11 @@ func (db *mysql) GetTables(queryer core.Queryer, ctx context.Context) ([]*schema
 func (db *mysql) SetQuotePolicy(quotePolicy QuotePolicy) {
 	switch quotePolicy {
 	case QuotePolicyNone:
-		var q = mysqlQuoter
+		q := mysqlQuoter
 		q.IsReserved = schemas.AlwaysNoReserve
 		db.quoter = q
 	case QuotePolicyReserved:
-		var q = mysqlQuoter
+		q := mysqlQuoter
 		q.IsReserved = db.IsReserved
 		db.quoter = q
 	case QuotePolicyAlways:
@@ -570,7 +576,7 @@ func (db *mysql) SetQuotePolicy(quotePolicy QuotePolicy) {
 
 func (db *mysql) GetIndexes(queryer core.Queryer, ctx context.Context, tableName string) (map[string]*schemas.Index, error) {
 	args := []interface{}{db.uri.DBName, tableName}
-	s := "SELECT `INDEX_NAME`, `NON_UNIQUE`, `COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`STATISTICS` WHERE `TABLE_SCHEMA` = ? AND `TABLE_NAME` = ?"
+	s := "SELECT `INDEX_NAME`, `NON_UNIQUE`, `COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`STATISTICS` WHERE `TABLE_SCHEMA` = ? AND `TABLE_NAME` = ? ORDER BY `SEQ_IN_INDEX`"
 
 	rows, err := queryer.QueryContext(ctx, s, args...)
 	if err != nil {
@@ -661,7 +667,7 @@ func (db *mysql) CreateTableSQL(ctx context.Context, queryer core.Queryer, table
 		b.WriteString(table.StoreEngine)
 	}
 
-	var charset = table.Charset
+	charset := table.Charset
 	if len(charset) == 0 {
 		charset = db.URI().Charset
 	}

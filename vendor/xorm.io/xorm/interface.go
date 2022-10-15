@@ -54,7 +54,7 @@ type Interface interface {
 	Nullable(...string) *Session
 	Join(joinOperator string, tablename interface{}, condition string, args ...interface{}) *Session
 	Omit(columns ...string) *Session
-	OrderBy(order string) *Session
+	OrderBy(order interface{}, args ...interface{}) *Session
 	Ping() error
 	Query(sqlOrArgs ...interface{}) (resultsSlice []map[string][]byte, err error)
 	QueryInterface(sqlOrArgs ...interface{}) ([]map[string]interface{}, error)

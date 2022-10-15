@@ -380,7 +380,7 @@ func (engine *Engine) loadTableInfo(table *schemas.Table) error {
 					seq = 0
 				}
 			}
-			var colName = strings.Trim(parts[0], `"`)
+			colName := strings.Trim(parts[0], `"`)
 			if col := table.GetColumn(colName); col != nil {
 				col.Indexes[index.Name] = index.Type
 			} else {
@@ -502,9 +502,9 @@ func (engine *Engine) dumpTables(ctx context.Context, tables []*schemas.Table, w
 			}
 		}
 
-		var dstTableName = dstTable.Name
-		var quoter = dstDialect.Quoter().Quote
-		var quotedDstTableName = quoter(dstTable.Name)
+		dstTableName := dstTable.Name
+		quoter := dstDialect.Quoter().Quote
+		quotedDstTableName := quoter(dstTable.Name)
 		if dstDialect.URI().Schema != "" {
 			dstTableName = fmt.Sprintf("%s.%s", dstDialect.URI().Schema, dstTable.Name)
 			quotedDstTableName = fmt.Sprintf("%s.%s", quoter(dstDialect.URI().Schema), quoter(dstTable.Name))
@@ -1006,10 +1006,10 @@ func (engine *Engine) Asc(colNames ...string) *Session {
 }
 
 // OrderBy will generate "ORDER BY order"
-func (engine *Engine) OrderBy(order string) *Session {
+func (engine *Engine) OrderBy(order interface{}, args ...interface{}) *Session {
 	session := engine.NewSession()
 	session.isAutoClose = true
-	return session.OrderBy(order)
+	return session.OrderBy(order, args...)
 }
 
 // Prepare enables prepare statement

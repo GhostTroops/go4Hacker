@@ -3,6 +3,29 @@
 This changelog goes through all the changes that have been made in each release
 without substantial changes to our git log.
 
+## [1.3.2](https://gitea.com/xorm/xorm/releases/tag/1.3.2) - 2022-09-03
+
+* BUGFIXES
+  * Change schemas.Column to use int64 (#2160)
+* MISC
+  * Prevent Sync failure with non-regular indexes on Postgres (#2174)
+
+## [1.3.1](https://gitea.com/xorm/xorm/releases/tag/1.3.1) - 2022-06-03
+
+* BREAKING
+  * Refactor orderby and support arguments (#2150)
+  * return a clear error for set TEXT type as compare condition (#2062)
+* BUGFIXES
+  * Fix oid index for postgres (#2154)
+  * Add ORDER BY SEQ_IN_INDEX to MySQL GetIndexes to Fix IndexTests (#2152)
+  * some improvement (#2136)
+* ENHANCEMENTS
+  * Add interface to allow structs to provide specific index information (#2137)
+  * MySQL/MariaDB: return max length for text columns (#2133)
+  * PostgreSQL: enable comment on column (#2131)
+* TESTING
+  * Add test for find date (#2121)
+
 ## [1.3.0](https://gitea.com/xorm/xorm/releases/tag/1.3.0) - 2022-04-14
 
 * BREAKING

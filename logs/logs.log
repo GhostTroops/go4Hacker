@@ -1,0 +1,1 @@
+time="2022-10-16T00:54:32+08:00" level=error msg="[webui.go::initDatabase] orm.Sync: Cannot add a NOT NULL column with default value NULL"

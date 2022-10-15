@@ -229,7 +229,7 @@ func (db *mssql) Init(uri *URI) error {
 func (db *mssql) SetParams(params map[string]string) {
 	defaultVarchar, ok := params["DEFAULT_VARCHAR"]
 	if ok {
-		var t = strings.ToUpper(defaultVarchar)
+		t := strings.ToUpper(defaultVarchar)
 		switch t {
 		case "NVARCHAR", "VARCHAR":
 			db.defaultVarchar = t
@@ -242,7 +242,7 @@ func (db *mssql) SetParams(params map[string]string) {
 
 	defaultChar, ok := params["DEFAULT_CHAR"]
 	if ok {
-		var t = strings.ToUpper(defaultChar)
+		t := strings.ToUpper(defaultChar)
 		switch t {
 		case "NCHAR", "CHAR":
 			db.defaultChar = t
@@ -375,9 +375,9 @@ func (db *mssql) SQLType(c *schemas.Column) string {
 	hasLen2 := (c.Length2 > 0)
 
 	if hasLen2 {
-		res += "(" + strconv.Itoa(c.Length) + "," + strconv.Itoa(c.Length2) + ")"
+		res += "(" + strconv.FormatInt(c.Length, 10) + "," + strconv.FormatInt(c.Length2, 10) + ")"
 	} else if hasLen1 {
-		res += "(" + strconv.Itoa(c.Length) + ")"
+		res += "(" + strconv.FormatInt(c.Length, 10) + ")"
 	}
 	return res
 }
@@ -403,11 +403,11 @@ func (db *mssql) IsReserved(name string) bool {
 func (db *mssql) SetQuotePolicy(quotePolicy QuotePolicy) {
 	switch quotePolicy {
 	case QuotePolicyNone:
-		var q = mssqlQuoter
+		q := mssqlQuoter
 		q.IsReserved = schemas.AlwaysNoReserve
 		db.quoter = q
 	case QuotePolicyReserved:
-		var q = mssqlQuoter
+		q := mssqlQuoter
 		q.IsReserved = db.IsReserved
 		db.quoter = q
 	case QuotePolicyAlways:
@@ -475,7 +475,7 @@ func (db *mssql) GetColumns(queryer core.Queryer, ctx context.Context, tableName
 	colSeq := make([]string, 0)
 	for rows.Next() {
 		var name, ctype, vdefault string
-		var maxLen, precision, scale int
+		var maxLen, precision, scale int64
 		var nullable, isPK, defaultIsNull, isIncrement bool
 		err = rows.Scan(&name, &ctype, &maxLen, &precision, &scale, &nullable, &defaultIsNull, &vdefault, &isPK, &isIncrement)
 		if err != nil {

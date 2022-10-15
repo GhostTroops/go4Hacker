@@ -28,8 +28,8 @@ const (
 // SQLType represents SQL types
 type SQLType struct {
 	Name           string
-	DefaultLength  int
-	DefaultLength2 int
+	DefaultLength  int64
+	DefaultLength2 int64
 }
 
 // enumerates all columns types

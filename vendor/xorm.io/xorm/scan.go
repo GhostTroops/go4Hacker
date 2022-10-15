@@ -22,7 +22,7 @@ func genScanResultsByBeanNullable(bean interface{}) (interface{}, bool, error) {
 	switch t := bean.(type) {
 	case *interface{}:
 		return t, false, nil
-	case *sql.NullInt64, *sql.NullBool, *sql.NullFloat64, *sql.NullString, *sql.RawBytes:
+	case *sql.NullInt64, *sql.NullBool, *sql.NullFloat64, *sql.NullString, *sql.RawBytes, *[]byte:
 		return t, false, nil
 	case *time.Time:
 		return &sql.NullString{}, true, nil
@@ -67,7 +67,7 @@ func genScanResultsByBeanNullable(bean interface{}) (interface{}, bool, error) {
 	case reflect.Uint32, reflect.Uint, reflect.Uint16, reflect.Uint8:
 		return &convert.NullUint32{}, true, nil
 	default:
-		return nil, false, fmt.Errorf("unsupported type: %#v", bean)
+		return nil, false, fmt.Errorf("genScanResultsByBeanNullable: unsupported type: %#v", bean)
 	}
 }
 
@@ -125,12 +125,12 @@ func genScanResultsByBean(bean interface{}) (interface{}, bool, error) {
 	case reflect.Float64:
 		return new(float64), true, nil
 	default:
-		return nil, false, fmt.Errorf("unsupported type: %#v", bean)
+		return nil, false, fmt.Errorf("genScanResultsByBean: unsupported type: %#v", bean)
 	}
 }
 
 func (engine *Engine) scanStringInterface(rows *core.Rows, fields []string, types []*sql.ColumnType) ([]interface{}, error) {
-	var scanResults = make([]interface{}, len(types))
+	scanResults := make([]interface{}, len(types))
 	for i := 0; i < len(types); i++ {
 		var s sql.NullString
 		scanResults[i] = &s
@@ -144,8 +144,8 @@ func (engine *Engine) scanStringInterface(rows *core.Rows, fields []string, type
 
 // scan is a wrap of driver.Scan but will automatically change the input values according requirements
 func (engine *Engine) scan(rows *core.Rows, fields []string, types []*sql.ColumnType, vv ...interface{}) error {
-	var scanResults = make([]interface{}, 0, len(types))
-	var replaces = make([]bool, 0, len(types))
+	scanResults := make([]interface{}, 0, len(types))
+	replaces := make([]bool, 0, len(types))
 	var err error
 	for _, v := range vv {
 		var replaced bool
@@ -194,7 +194,7 @@ func (engine *Engine) scan(rows *core.Rows, fields []string, types []*sql.Column
 }
 
 func (engine *Engine) scanInterfaces(rows *core.Rows, fields []string, types []*sql.ColumnType) ([]interface{}, error) {
-	var scanResultContainers = make([]interface{}, len(types))
+	scanResultContainers := make([]interface{}, len(types))
 	for i := 0; i < len(types); i++ {
 		scanResult, err := engine.driver.GenScanResult(types[i].DatabaseTypeName())
 		if err != nil {
@@ -212,8 +212,8 @@ func (engine *Engine) scanInterfaces(rows *core.Rows, fields []string, types []*
 // row -> map[string]interface{}
 
 func (engine *Engine) row2mapInterface(rows *core.Rows, types []*sql.ColumnType, fields []string) (map[string]interface{}, error) {
-	var resultsMap = make(map[string]interface{}, len(fields))
-	var scanResultContainers = make([]interface{}, len(fields))
+	resultsMap := make(map[string]interface{}, len(fields))
+	scanResultContainers := make([]interface{}, len(fields))
 	for i := 0; i < len(fields); i++ {
 		scanResult, err := engine.driver.GenScanResult(types[i].DatabaseTypeName())
 		if err != nil {
@@ -277,7 +277,7 @@ func (engine *Engine) ScanInterfaceMaps(rows *core.Rows) (resultsSlice []map[str
 // row -> map[string]string
 
 func (engine *Engine) row2mapStr(rows *core.Rows, types []*sql.ColumnType, fields []string) (map[string]string, error) {
-	var scanResults = make([]interface{}, len(fields))
+	scanResults := make([]interface{}, len(fields))
 	for i := 0; i < len(fields); i++ {
 		var s sql.NullString
 		scanResults[i] = &s
@@ -353,7 +353,7 @@ func (engine *Engine) ScanStringMaps(rows *core.Rows) (resultsSlice []map[string
 // row -> map[string][]byte
 
 func convertMapStr2Bytes(m map[string]string) map[string][]byte {
-	var r = make(map[string][]byte, len(m))
+	r := make(map[string][]byte, len(m))
 	for k, v := range m {
 		r[k] = []byte(v)
 	}
@@ -392,7 +392,7 @@ func (engine *Engine) row2sliceStr(rows *core.Rows, types []*sql.ColumnType, fie
 		return nil, err
 	}
 
-	var results = make([]string, 0, len(fields))
+	results := make([]string, 0, len(fields))
 	for i := 0; i < len(fields); i++ {
 		results = append(results, scanResults[i].(*sql.NullString).String)
 	}

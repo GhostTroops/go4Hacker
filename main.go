@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+	//os.Args = strings.Split(os.Args[0]+" -level WARN serve -4 192.168.0.107 -domain 51pwn.com -lang zh-CN", " ")
 	var logFile, logLevel string
 
 	subcommands.Register(subcommands.FlagsCommand(), "")
@@ -39,12 +40,16 @@ func main() {
 	}
 
 	if logFile != "" {
-		f, err := os.Create(logFile)
+		f, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 		if err != nil {
 			log.Panicf("Open", logFile, err)
 		}
-		defer f.Close()
 		buf := bufio.NewWriter(f)
+		defer func() {
+			buf.Flush()
+			f.Close()
+		}()
+
 		//async flush
 		go func() {
 			for {

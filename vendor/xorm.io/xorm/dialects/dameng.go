@@ -622,9 +622,9 @@ func (db *dameng) SQLType(c *schemas.Column) string {
 	hasLen2 := (c.Length2 > 0)
 
 	if hasLen2 {
-		res += "(" + strconv.Itoa(c.Length) + "," + strconv.Itoa(c.Length2) + ")"
+		res += "(" + strconv.FormatInt(c.Length, 10) + "," + strconv.FormatInt(c.Length2, 10) + ")"
 	} else if hasLen1 {
-		res += "(" + strconv.Itoa(c.Length) + ")"
+		res += "(" + strconv.FormatInt(c.Length, 10) + ")"
 	}
 	return res
 }
@@ -729,11 +729,11 @@ func (db *dameng) CreateTableSQL(ctx context.Context, queryer core.Queryer, tabl
 func (db *dameng) SetQuotePolicy(quotePolicy QuotePolicy) {
 	switch quotePolicy {
 	case QuotePolicyNone:
-		var q = damengQuoter
+		q := damengQuoter
 		q.IsReserved = schemas.AlwaysNoReserve
 		db.quoter = q
 	case QuotePolicyReserved:
-		var q = damengQuoter
+		q := damengQuoter
 		q.IsReserved = db.IsReserved
 		db.quoter = q
 	case QuotePolicyAlways:
@@ -792,7 +792,7 @@ type dmClobObject interface {
 	ReadString(int, int) (string, error)
 }
 
-//var _ dmClobObject = &dm.DmClob{}
+// var _ dmClobObject = &dm.DmClob{}
 
 func (d *dmClobScanner) Scan(data interface{}) error {
 	if data == nil {
@@ -927,7 +927,7 @@ func (db *dameng) GetColumns(queryer core.Queryer, ctx context.Context, tableNam
 		var (
 			ignore     bool
 			dt         string
-			len1, len2 int
+			len1, len2 int64
 		)
 
 		dts := strings.Split(dataType.String, "(")
@@ -935,10 +935,10 @@ func (db *dameng) GetColumns(queryer core.Queryer, ctx context.Context, tableNam
 		if len(dts) > 1 {
 			lens := strings.Split(dts[1][:len(dts[1])-1], ",")
 			if len(lens) > 1 {
-				len1, _ = strconv.Atoi(lens[0])
-				len2, _ = strconv.Atoi(lens[1])
+				len1, _ = strconv.ParseInt(lens[0], 10, 64)
+				len2, _ = strconv.ParseInt(lens[1], 10, 64)
 			} else {
-				len1, _ = strconv.Atoi(lens[0])
+				len1, _ = strconv.ParseInt(lens[0], 10, 64)
 			}
 		}
 
@@ -972,9 +972,9 @@ func (db *dameng) GetColumns(queryer core.Queryer, ctx context.Context, tableNam
 		}
 
 		if col.SQLType.Name == "TIMESTAMP" {
-			col.Length = int(dataScale.Int64)
+			col.Length = dataScale.Int64
 		} else {
-			col.Length = int(dataLen.Int64)
+			col.Length = dataLen.Int64
 		}
 
 		if col.SQLType.IsTime() {
@@ -1140,8 +1140,8 @@ func (d *damengDriver) GenScanResult(colType string) (interface{}, error) {
 }
 
 func (d *damengDriver) Scan(ctx *ScanContext, rows *core.Rows, types []*sql.ColumnType, vv ...interface{}) error {
-	var scanResults = make([]interface{}, 0, len(types))
-	var replaces = make([]bool, 0, len(types))
+	scanResults := make([]interface{}, 0, len(types))
+	replaces := make([]bool, 0, len(types))
 	var err error
 	for i, v := range vv {
 		var replaced bool

@@ -9,7 +9,9 @@ import (
 	"fmt"
 	"strconv"
 
+	"xorm.io/builder"
 	"xorm.io/xorm/caches"
+	"xorm.io/xorm/internal/utils"
 	"xorm.io/xorm/schemas"
 )
 
@@ -99,10 +101,9 @@ func (session *Session) Delete(beans ...interface{}) (int64, error) {
 	}
 
 	var (
-		condSQL  string
-		condArgs []interface{}
-		err      error
-		bean     interface{}
+		condWriter = builder.NewWriter()
+		err        error
+		bean       interface{}
 	)
 	if len(beans) > 0 {
 		bean = beans[0]
@@ -116,115 +117,97 @@ func (session *Session) Delete(beans ...interface{}) (int64, error) {
 			processor.BeforeDelete()
 		}
 
-		condSQL, condArgs, err = session.statement.GenConds(bean)
-	} else {
-		condSQL, condArgs, err = session.statement.GenCondSQL(session.statement.Conds())
+		if err = session.statement.MergeConds(bean); err != nil {
+			return 0, err
+		}
 	}
-	if err != nil {
+
+	if err = session.statement.Conds().WriteTo(session.statement.QuoteReplacer(condWriter)); err != nil {
 		return 0, err
 	}
 
 	pLimitN := session.statement.LimitN
-	if len(condSQL) == 0 && (pLimitN == nil || *pLimitN == 0) {
+	if condWriter.Len() == 0 && (pLimitN == nil || *pLimitN == 0) {
 		return 0, ErrNeedDeletedCond
 	}
 
-	var tableNameNoQuote = session.statement.TableName()
-	var tableName = session.engine.Quote(tableNameNoQuote)
-	var table = session.statement.RefTable
-	var deleteSQL string
-	if len(condSQL) > 0 {
-		deleteSQL = fmt.Sprintf("DELETE FROM %v WHERE %v", tableName, condSQL)
-	} else {
-		deleteSQL = fmt.Sprintf("DELETE FROM %v", tableName)
+	tableNameNoQuote := session.statement.TableName()
+	tableName := session.engine.Quote(tableNameNoQuote)
+	table := session.statement.RefTable
+	deleteSQLWriter := builder.NewWriter()
+	fmt.Fprintf(deleteSQLWriter, "DELETE FROM %v", tableName)
+	if condWriter.Len() > 0 {
+		fmt.Fprintf(deleteSQLWriter, " WHERE %v", condWriter.String())
+		deleteSQLWriter.Append(condWriter.Args()...)
 	}
 
-	var orderSQL string
-	if len(session.statement.OrderStr) > 0 {
-		orderSQL += fmt.Sprintf(" ORDER BY %s", session.statement.OrderStr)
+	orderSQLWriter := builder.NewWriter()
+	if err := session.statement.WriteOrderBy(orderSQLWriter); err != nil {
+		return 0, err
 	}
+
 	if pLimitN != nil && *pLimitN > 0 {
 		limitNValue := *pLimitN
-		orderSQL += fmt.Sprintf(" LIMIT %d", limitNValue)
+		if _, err := fmt.Fprintf(orderSQLWriter, " LIMIT %d", limitNValue); err != nil {
+			return 0, err
+		}
 	}
 
-	if len(orderSQL) > 0 {
+	orderCondWriter := builder.NewWriter()
+	if orderSQLWriter.Len() > 0 {
 		switch session.engine.dialect.URI().DBType {
 		case schemas.POSTGRES:
-			inSQL := fmt.Sprintf("ctid IN (SELECT ctid FROM %s%s)", tableName, orderSQL)
-			if len(condSQL) > 0 {
-				deleteSQL += " AND " + inSQL
+			if condWriter.Len() > 0 {
+				fmt.Fprintf(orderCondWriter, " AND ")
 			} else {
-				deleteSQL += " WHERE " + inSQL
+				fmt.Fprintf(orderCondWriter, " WHERE ")
 			}
+			fmt.Fprintf(orderCondWriter, "ctid IN (SELECT ctid FROM %s%s)", tableName, orderSQLWriter.String())
+			orderCondWriter.Append(orderSQLWriter.Args()...)
 		case schemas.SQLITE:
-			inSQL := fmt.Sprintf("rowid IN (SELECT rowid FROM %s%s)", tableName, orderSQL)
-			if len(condSQL) > 0 {
-				deleteSQL += " AND " + inSQL
+			if condWriter.Len() > 0 {
+				fmt.Fprintf(orderCondWriter, " AND ")
 			} else {
-				deleteSQL += " WHERE " + inSQL
+				fmt.Fprintf(orderCondWriter, " WHERE ")
 			}
+			fmt.Fprintf(orderCondWriter, "rowid IN (SELECT rowid FROM %s%s)", tableName, orderSQLWriter.String())
 			// TODO: how to handle delete limit on mssql?
 		case schemas.MSSQL:
 			return 0, ErrNotImplemented
 		default:
-			deleteSQL += orderSQL
+			fmt.Fprint(orderCondWriter, orderSQLWriter.String())
+			orderCondWriter.Append(orderSQLWriter.Args()...)
 		}
 	}
 
-	var realSQL string
-	argsForCache := make([]interface{}, 0, len(condArgs)*2)
+	realSQLWriter := builder.NewWriter()
+	argsForCache := make([]interface{}, 0, len(deleteSQLWriter.Args())*2)
+	copy(argsForCache, deleteSQLWriter.Args())
+	argsForCache = append(deleteSQLWriter.Args(), argsForCache...)
 	if session.statement.GetUnscoped() || table == nil || table.DeletedColumn() == nil { // tag "deleted" is disabled
-		realSQL = deleteSQL
-		copy(argsForCache, condArgs)
-		argsForCache = append(condArgs, argsForCache...)
+		if err := utils.WriteBuilder(realSQLWriter, deleteSQLWriter, orderCondWriter); err != nil {
+			return 0, err
+		}
 	} else {
-		// !oinume! sqlStrForCache and argsForCache is needed to behave as executing "DELETE FROM ..." for caches.
-		copy(argsForCache, condArgs)
-		argsForCache = append(condArgs, argsForCache...)
-
 		deletedColumn := table.DeletedColumn()
-		realSQL = fmt.Sprintf("UPDATE %v SET %v = ? WHERE %v",
+		if _, err := fmt.Fprintf(realSQLWriter, "UPDATE %v SET %v = ? WHERE %v",
 			session.engine.Quote(session.statement.TableName()),
 			session.engine.Quote(deletedColumn.Name),
-			condSQL)
-
-		if len(orderSQL) > 0 {
-			switch session.engine.dialect.URI().DBType {
-			case schemas.POSTGRES:
-				inSQL := fmt.Sprintf("ctid IN (SELECT ctid FROM %s%s)", tableName, orderSQL)
-				if len(condSQL) > 0 {
-					realSQL += " AND " + inSQL
-				} else {
-					realSQL += " WHERE " + inSQL
-				}
-			case schemas.SQLITE:
-				inSQL := fmt.Sprintf("rowid IN (SELECT rowid FROM %s%s)", tableName, orderSQL)
-				if len(condSQL) > 0 {
-					realSQL += " AND " + inSQL
-				} else {
-					realSQL += " WHERE " + inSQL
-				}
-				// TODO: how to handle delete limit on mssql?
-			case schemas.MSSQL:
-				return 0, ErrNotImplemented
-			default:
-				realSQL += orderSQL
-			}
+			condWriter.String()); err != nil {
+			return 0, err
 		}
-
-		// !oinume! Insert nowTime to the head of session.statement.Params
-		condArgs = append(condArgs, "")
-		paramsLen := len(condArgs)
-		copy(condArgs[1:paramsLen], condArgs[0:paramsLen-1])
-
 		val, t, err := session.engine.nowTime(deletedColumn)
 		if err != nil {
 			return 0, err
 		}
-		condArgs[0] = val
+		realSQLWriter.Append(val)
+		realSQLWriter.Append(condWriter.Args()...)
 
-		var colName = deletedColumn.Name
+		if err := utils.WriteBuilder(realSQLWriter, orderCondWriter); err != nil {
+			return 0, err
+		}
+
+		colName := deletedColumn.Name
 		session.afterClosures = append(session.afterClosures, func(bean interface{}) {
 			col := table.GetColumn(colName)
 			setColumnTime(bean, col, t)
@@ -232,11 +215,11 @@ func (session *Session) Delete(beans ...interface{}) (int64, error) {
 	}
 
 	if cacher := session.engine.GetCacher(tableNameNoQuote); cacher != nil && session.statement.UseCache {
-		_ = session.cacheDelete(table, tableNameNoQuote, deleteSQL, argsForCache...)
+		_ = session.cacheDelete(table, tableNameNoQuote, deleteSQLWriter.String(), argsForCache...)
 	}
 
 	session.statement.RefTable = table
-	res, err := session.exec(realSQL, condArgs...)
+	res, err := session.exec(realSQLWriter.String(), realSQLWriter.Args()...)
 	if err != nil {
 		return 0, err
 	}

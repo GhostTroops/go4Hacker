@@ -862,11 +862,11 @@ func (db *postgres) needQuote(name string) bool {
 func (db *postgres) SetQuotePolicy(quotePolicy QuotePolicy) {
 	switch quotePolicy {
 	case QuotePolicyNone:
-		var q = postgresQuoter
+		q := postgresQuoter
 		q.IsReserved = schemas.AlwaysNoReserve
 		db.quoter = q
 	case QuotePolicyReserved:
-		var q = postgresQuoter
+		q := postgresQuoter
 		q.IsReserved = db.needQuote
 		db.quoter = q
 	case QuotePolicyAlways:
@@ -934,9 +934,9 @@ func (db *postgres) SQLType(c *schemas.Column) string {
 	hasLen2 := (c.Length2 > 0)
 
 	if hasLen2 {
-		res += "(" + strconv.Itoa(c.Length) + "," + strconv.Itoa(c.Length2) + ")"
+		res += "(" + strconv.FormatInt(c.Length, 10) + "," + strconv.FormatInt(c.Length2, 10) + ")"
 	} else if hasLen1 {
-		res += "(" + strconv.Itoa(c.Length) + ")"
+		res += "(" + strconv.FormatInt(c.Length, 10) + ")"
 	}
 	return res
 }
@@ -1030,11 +1030,10 @@ func (db *postgres) DropIndexSQL(tableName string, index *schemas.Index) string 
 	tableParts := strings.Split(strings.Replace(tableName, `"`, "", -1), ".")
 	tableName = tableParts[len(tableParts)-1]
 
-	if !strings.HasPrefix(idxName, "UQE_") &&
-		!strings.HasPrefix(idxName, "IDX_") {
-		if index.Type == schemas.UniqueType {
+	if index.IsRegular {
+		if index.Type == schemas.UniqueType && !strings.HasPrefix(idxName, "UQE_") {
 			idxName = fmt.Sprintf("UQE_%v_%v", tableName, index.Name)
-		} else {
+		} else if index.Type == schemas.IndexType && !strings.HasPrefix(idxName, "IDX_") {
 			idxName = fmt.Sprintf("IDX_%v_%v", tableName, index.Name)
 		}
 	}
@@ -1110,9 +1109,9 @@ WHERE n.nspname= s.table_schema AND c.relkind = 'r'::char AND c.relname = $1%s A
 			return nil, nil, err
 		}
 
-		var maxLen int
+		var maxLen int64
 		if maxLenStr != nil {
-			maxLen, err = strconv.Atoi(*maxLenStr)
+			maxLen, err = strconv.ParseInt(*maxLenStr, 10, 64)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -1125,7 +1124,7 @@ WHERE n.nspname= s.table_schema AND c.relkind = 'r'::char AND c.relname = $1%s A
 		col.Name = strings.Trim(colName, `" `)
 
 		if colDefault != nil {
-			var theDefault = *colDefault
+			theDefault := *colDefault
 			// cockroach has type with the default value with :::
 			// and postgres with ::, we should remove them before store them
 			idx := strings.Index(theDefault, ":::")
@@ -1186,7 +1185,7 @@ WHERE n.nspname= s.table_schema AND c.relkind = 'r'::char AND c.relname = $1%s A
 			startIdx := strings.Index(strings.ToLower(dataType), "string(")
 			if startIdx != -1 && strings.HasSuffix(dataType, ")") {
 				length := dataType[startIdx+8 : len(dataType)-1]
-				l, _ := strconv.Atoi(length)
+				l, _ := strconv.ParseInt(length, 10, 64)
 				col.SQLType = schemas.SQLType{Name: "STRING", DefaultLength: l, DefaultLength2: 0}
 			} else {
 				col.SQLType = schemas.SQLType{Name: strings.ToUpper(dataType), DefaultLength: 0, DefaultLength2: 0}
@@ -1301,15 +1300,8 @@ func (db *postgres) GetIndexes(queryer core.Queryer, ctx context.Context, tableN
 		}
 		colNames = getIndexColName(indexdef)
 
-		isSkip := false
-		//Oid It's a special index. You can't put it in
-		for _, element := range colNames {
-			if "oid" == element {
-				isSkip = true
-				break
-			}
-		}
-		if isSkip {
+		// Oid It's a special index. You can't put it in. TODO: This is not perfect.
+		if indexName == tableName+"_oid_index" && len(colNames) == 1 && colNames[0] == "oid" {
 			continue
 		}
 
@@ -1352,6 +1344,14 @@ func (db *postgres) CreateTableSQL(ctx context.Context, queryer core.Queryer, ta
 	if table.Comment != "" {
 		// support schema.table -> "schema"."table"
 		commentSQL += fmt.Sprintf("COMMENT ON TABLE %s IS '%s'", quoter.Quote(tableName), table.Comment)
+	}
+
+	for _, colName := range table.ColumnsSeq() {
+		col := table.GetColumn(colName)
+
+		if len(col.Comment) > 0 {
+			commentSQL += fmt.Sprintf("COMMENT ON COLUMN %s.%s IS '%s'", quoter.Quote(tableName), quoter.Quote(col.Name), col.Comment)
+		}
 	}
 
 	return createTableSQL + commentSQL, true, nil
