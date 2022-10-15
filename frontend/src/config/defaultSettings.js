@@ -23,7 +23,7 @@ export default {
   menu: {
     locale: true
   },
-  title: '360漏洞云DNSLog平台',
+  title: '51Pwn Hacker Platform',
   pwa: false,
   iconfontUrl: '',
   production: process.env.NODE_ENV === 'production' && process.env.VUE_APP_PREVIEW !== 'true'

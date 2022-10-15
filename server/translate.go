@@ -11,6 +11,78 @@ import (
 )
 
 var (
+	/*{
+	  "en-US": {
+	    "Bad Resolve Data": "Bad Resolve Data",
+	    "Bad param": "Bad param",
+	    "Can't Change Host/Type": "Can't Change Host/Type",
+	    "Can't change": "Can't change",
+	    "Can't handle this token": "Can't handle this token",
+	    "Delete Record: %v": "删除记录: %v",
+	    "Delete resolve(%v), but not exist": "Delete resolve(%v), but not exist",
+	    "Failed": "Failed",
+	    "Insert record: %v": "Insert record: %v",
+	    "No such user": "No such user",
+	    "OK": "OK",
+	    "Query Record: %v": "Query Record: %v",
+	    "Query record: %v": "Query record: %v",
+	    "Record not exist": "Record not exist",
+	    "Token Expire": "Token Expire",
+	    "Token Expired or not active yet": "Token Expired or not active yet",
+	    "Token Required": "Token Required",
+	    "Token invalid": "Token invalid",
+	    "Type:(%v) conflict with %v": "Type:(%v) conflict with %v",
+	    "Update record: %v": "Update record: %v",
+	    "Value(%v) already exists": "Value(%v) already exists",
+	    "bad input": "bad input",
+	    "bad param": "bad param",
+	    "bad permission": "bad permission",
+	    "bad request": "bad request",
+	    "bad service": "bad service",
+	    "delete: %v": "delete: %v",
+	    "failed": "failed",
+	    "invalid Param": "invalid Param",
+	    "not login": "not login",
+	    "param invaid: ": "param invaid: ",
+	    "param required": "param required",
+	    "parameter id is required": "parameter id is required",
+	    "update Failed": "update Failed"
+	  },
+	  "zh-CN": {
+	    "Bad Resolve Data": "数据格式不正确",
+	    "Bad param": "无效参数",
+	    "Can't Change Host/Type": "不能更改主机/类型",
+	    "Can't change": "无法修改",
+	    "Can't handle this token": "无法解析token",
+	    "Failed": "失败",
+	    "Insert record: %v": "插入记录: %v",
+	    "No such user": "用户不存在",
+	    "OK": "成功",
+	    "Query Record: %v": "查询记录: %v",
+	    "Record not exist": "记录不存在",
+	    "Token Expire": "token已过期",
+	    "Token Expired or not active yet": "token已过期或者未激活",
+	    "Token Required": "没有获取到token",
+	    "Token invalid": "token无效",
+	    "Type:(%v) conflict with %v": "类型:(%v) 与%v冲突",
+	    "Value(%v) already exists": "值(%v)已存在",
+	    "bad input": "输入不合法",
+	    "bad param": "参数错误",
+	    "bad permission": "没有权限",
+	    "bad request": "不合法的请求",
+	    "bad service": "内部错误",
+	    "delete: %v": "已删除: %v",
+	    "failed": "失败",
+	    "invalid Param": "无效参数",
+	    "not login": "尚未登录",
+	    "param invaid: ": "参数无效: ",
+	    "param required": "未输入必要参数",
+	    "parameter id is required": "参数id必须传入",
+	    "update Failed": "更新失败"
+	  }
+	}
+	*/
+	// 没有从配置文件读取
 	_tsdata = "eyJlbi1VUyI6eyJCYWQgUmVzb2x2ZSBEYXRhIjoiQmFkIFJlc29sdmUgRGF0YSIsIkJhZCBwYXJhbSI6IkJhZCBwYXJhbSIsIkNhbid0IENoYW5nZSBIb3N0L1R5cGUiOiJDYW4ndCBDaGFuZ2UgSG9zdC9UeXBlIiwiQ2FuJ3QgY2hhbmdlIjoiQ2FuJ3QgY2hhbmdlIiwiQ2FuJ3QgaGFuZGxlIHRoaXMgdG9rZW4iOiJDYW4ndCBoYW5kbGUgdGhpcyB0b2tlbiIsIkRlbGV0ZSBSZWNvcmQ6ICV2Ijoi5Yig6Zmk6K6w5b2VOiAldiIsIkRlbGV0ZSByZXNvbHZlKCV2KSwgYnV0IG5vdCBleGlzdCI6IkRlbGV0ZSByZXNvbHZlKCV2KSwgYnV0IG5vdCBleGlzdCIsIkZhaWxlZCI6IkZhaWxlZCIsIkluc2VydCByZWNvcmQ6ICV2IjoiSW5zZXJ0IHJlY29yZDogJXYiLCJObyBzdWNoIHVzZXIiOiJObyBzdWNoIHVzZXIiLCJPSyI6Ik9LIiwiUXVlcnkgUmVjb3JkOiAldiI6IlF1ZXJ5IFJlY29yZDogJXYiLCJRdWVyeSByZWNvcmQ6ICV2IjoiUXVlcnkgcmVjb3JkOiAldiIsIlJlY29yZCBub3QgZXhpc3QiOiJSZWNvcmQgbm90IGV4aXN0IiwiVG9rZW4gRXhwaXJlIjoiVG9rZW4gRXhwaXJlIiwiVG9rZW4gRXhwaXJlZCBvciBub3QgYWN0aXZlIHlldCI6IlRva2VuIEV4cGlyZWQgb3Igbm90IGFjdGl2ZSB5ZXQiLCJUb2tlbiBSZXF1aXJlZCI6IlRva2VuIFJlcXVpcmVkIiwiVG9rZW4gaW52YWxpZCI6IlRva2VuIGludmFsaWQiLCJUeXBlOigldikgY29uZmxpY3Qgd2l0aCAldiI6IlR5cGU6KCV2KSBjb25mbGljdCB3aXRoICV2IiwiVXBkYXRlIHJlY29yZDogJXYiOiJVcGRhdGUgcmVjb3JkOiAldiIsIlZhbHVlKCV2KSBhbHJlYWR5IGV4aXN0cyI6IlZhbHVlKCV2KSBhbHJlYWR5IGV4aXN0cyIsImJhZCBpbnB1dCI6ImJhZCBpbnB1dCIsImJhZCBwYXJhbSI6ImJhZCBwYXJhbSIsImJhZCBwZXJtaXNzaW9uIjoiYmFkIHBlcm1pc3Npb24iLCJiYWQgcmVxdWVzdCI6ImJhZCByZXF1ZXN0IiwiYmFkIHNlcnZpY2UiOiJiYWQgc2VydmljZSIsImRlbGV0ZTogJXYiOiJkZWxldGU6ICV2IiwiZmFpbGVkIjoiZmFpbGVkIiwiaW52YWxpZCBQYXJhbSI6ImludmFsaWQgUGFyYW0iLCJub3QgbG9naW4iOiJub3QgbG9naW4iLCJwYXJhbSBpbnZhaWQ6ICI6InBhcmFtIGludmFpZDogIiwicGFyYW0gcmVxdWlyZWQiOiJwYXJhbSByZXF1aXJlZCIsInBhcmFtZXRlciBpZCBpcyByZXF1aXJlZCI6InBhcmFtZXRlciBpZCBpcyByZXF1aXJlZCIsInVwZGF0ZSBGYWlsZWQiOiJ1cGRhdGUgRmFpbGVkIn0sInpoLUNOIjp7IkJhZCBSZXNvbHZlIERhdGEiOiLmlbDmja7moLzlvI/kuI3mraPnoa4iLCJCYWQgcGFyYW0iOiLml6DmlYjlj4LmlbAiLCJDYW4ndCBDaGFuZ2UgSG9zdC9UeXBlIjoi5LiN6IO95pu05pS55Li75py6L+exu+WeiyIsIkNhbid0IGNoYW5nZSI6IuaXoOazleS/ruaUuSIsIkNhbid0IGhhbmRsZSB0aGlzIHRva2VuIjoi5peg5rOV6Kej5p6QdG9rZW4iLCJGYWlsZWQiOiLlpLHotKUiLCJJbnNlcnQgcmVjb3JkOiAldiI6IuaPkuWFpeiusOW9lTogJXYiLCJObyBzdWNoIHVzZXIiOiLnlKjmiLfkuI3lrZjlnKgiLCJPSyI6IuaIkOWKnyIsIlF1ZXJ5IFJlY29yZDogJXYiOiLmn6Xor6LorrDlvZU6ICV2IiwiUmVjb3JkIG5vdCBleGlzdCI6IuiusOW9leS4jeWtmOWcqCIsIlRva2VuIEV4cGlyZSI6InRva2Vu5bey6L+H5pyfIiwiVG9rZW4gRXhwaXJlZCBvciBub3QgYWN0aXZlIHlldCI6InRva2Vu5bey6L+H5pyf5oiW6ICF5pyq5r+A5rS7IiwiVG9rZW4gUmVxdWlyZWQiOiLmsqHmnInojrflj5bliLB0b2tlbiIsIlRva2VuIGludmFsaWQiOiJ0b2tlbuaXoOaViCIsIlR5cGU6KCV2KSBjb25mbGljdCB3aXRoICV2Ijoi57G75Z6LOigldikg5LiOJXblhrLnqoEiLCJWYWx1ZSgldikgYWxyZWFkeSBleGlzdHMiOiLlgLwoJXYp5bey5a2Y5ZyoIiwiYmFkIGlucHV0Ijoi6L6T5YWl5LiN5ZCI5rOVIiwiYmFkIHBhcmFtIjoi5Y+C5pWw6ZSZ6K+vIiwiYmFkIHBlcm1pc3Npb24iOiLmsqHmnInmnYPpmZAiLCJiYWQgcmVxdWVzdCI6IuS4jeWQiOazleeahOivt+axgiIsImJhZCBzZXJ2aWNlIjoi5YaF6YOo6ZSZ6K+vIiwiZGVsZXRlOiAldiI6IuW3suWIoOmZpDogJXYiLCJmYWlsZWQiOiLlpLHotKUiLCJpbnZhbGlkIFBhcmFtIjoi5peg5pWI5Y+C5pWwIiwibm90IGxvZ2luIjoi5bCa5pyq55m75b2VIiwicGFyYW0gaW52YWlkOiAiOiLlj4LmlbDml6DmlYg6ICIsInBhcmFtIHJlcXVpcmVkIjoi5pyq6L6T5YWl5b+F6KaB5Y+C5pWwIiwicGFyYW1ldGVyIGlkIGlzIHJlcXVpcmVkIjoi5Y+C5pWwaWTlv4XpobvkvKDlhaUiLCJ1cGRhdGUgRmFpbGVkIjoi5pu05paw5aSx6LSlIn19"
 	_ts     map[string]TranslateItem
 	_tsl    TranslateItem

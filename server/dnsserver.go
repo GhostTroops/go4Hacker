@@ -56,6 +56,8 @@ type Resolve struct {
 	Value string
 	Ttl   uint32
 }
+
+// dns server 配置
 type DnsServerConfig struct {
 	Domain             string
 	RTimeout, WTimeout time.Duration

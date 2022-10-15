@@ -5,24 +5,22 @@
         <div class="header">
           <a href="/">
             <!-- <img src="~@/assets/logo.png" class="logo" alt="logo"> -->
-            <span class="title">360漏洞云DNSLog平台</span>
+            <span class="title">51Pwn Hacker Platform</span>
           </a>
         </div>
-        <!-- <div class="desc">
-          SSRF/XXE/RFI/RCE漏洞dns&http LOG验证服务器
-        </div> -->
+        <div class="desc">
+          SSRF/XXE/RFI/RCE/LDAP/RMI/JNDI/Reverse Shll ... 漏洞dns&http LOG验证服务器
+        </div>
       </div>
 
       <router-view />
 
       <div class="footer">
         <div class="links">
-          <!-- <a href="https://github.com/hktalent/go4Hacker" target="_blank">Wechat</a>
-          <a href="https://github.com/hktalent/go4Hacker" target="_blank">Github</a>
-          <a href="https://github.com/chennqqi" target="_blank">@chennqqi</a> -->
+          <a href="https://github.com/hktalent" target="_blank">Github</a>
         </div>
         <div class="copyright">
-          <!-- <a href="https://www.godnslog.com">Copyright &copy; 2021 godnslog.com</a> -->
+          https://51pwn.com
         </div>
       </div>
     </div>
