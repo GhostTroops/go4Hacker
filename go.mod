@@ -21,7 +21,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/slonzok/getpass v0.0.0-20170424161223-6d86ecc93d07
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gopkg.in/yaml.v3 v3.0.0
 	xorm.io/xorm v1.3.2
 )
 
