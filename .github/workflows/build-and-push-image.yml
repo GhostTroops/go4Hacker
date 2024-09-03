@@ -62,13 +62,13 @@ jobs:
 
       # download binaries of go4Hackerc and go4Hackers
       - name: Download binary of go4Hackerc
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: go4Hackerc
           path: bin/go4Hackerc
 
       - name: Download binary of go4Hackers
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: go4Hackers
           path: bin/go4Hackers
